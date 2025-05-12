@@ -9,14 +9,10 @@ import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 
@@ -53,11 +49,11 @@ public class TareaController {
     }
 
     /**
-     * insertamos una reserva nueva, viendo la disponiblidad de mesas
+     * insertamos una tarea nueva
      */
 
     @PostMapping("/tareas")
-    public ResponseEntity<?> crearTarea(Authentication authentication, @RequestBody Tarea tarea) {
+    public ResponseEntity<?> crearTarea(Authentication authentication, @RequestBody Tarea crearTareaDTO) {
         // Verificar si el usuario está autenticado
         if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado.");
@@ -68,9 +64,69 @@ public class TareaController {
         Usuario user = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
+        //Crear la tarea
+        Tarea tarea = Tarea.builder()
+                .titulo(crearTareaDTO.getTitulo())
+                .descripcion(crearTareaDTO.getDescripcion())
+                .fecha_limite(crearTareaDTO.getFecha_limite())
+                .prioridad(crearTareaDTO.getPrioridad())
+                .estado(crearTareaDTO.getEstado())
+                .fecha_creacion(crearTareaDTO.getFecha_creacion())
+                .usuario(crearTareaDTO.getUsuario())
+                .categoria(crearTareaDTO.getCategoria())
+                .build();
+        Tarea nuevaTarea = tareaRepository.save(tarea);
 
-
-
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaTarea);
+        
     }
+
+    /**
+     * obtenemos una tarea especifica
+     */
+    @GetMapping("/tareas/{id}")
+    public ResponseEntity<Tarea> getTarea(@PathVariable Long id){
+        return tareaRepository.findById(id)
+                //Si la reserva fue encontrada (Optional no vacío), se ejecuta el bloque dentro de map.
+                //ResponseEntity.ok() crea una respuesta HTTP con el código de estado 200 OK.
+                //body(resreva) añade el proyecto como cuerpo de la respuesta.
+                .map(tarea -> ResponseEntity.ok().body(tarea))
+                .orElse(ResponseEntity.notFound().build());
+    }
+    /**
+     * modificamos una tarea
+     */
+    @PutMapping("/tareas/{id}")
+    public ResponseEntity <Tarea> editTarea(@PathVariable Long id, @RequestBody Tarea nuevaTarea){
+        return  tareaRepository.findById(id)
+                .map(tarea -> {
+                    tarea.setTitulo(nuevaTarea.getTitulo());
+                    tarea.setFecha_limite(nuevaTarea.getFecha_limite());
+                    tarea.setPrioridad(nuevaTarea.getPrioridad());
+                    tarea.setEstado(nuevaTarea.getEstado());
+                    tarea.setCategoria(nuevaTarea.getCategoria());
+                    tarea.setDescripcion(nuevaTarea.getDescripcion());
+                    tarea.setRecordatorios(nuevaTarea.getRecordatorios());
+                    return ResponseEntity.ok().body(tareaRepository.save(tarea));
+                })
+                .orElseGet(() ->{
+                    return ResponseEntity.notFound().build();
+                });
+    }
+    /**
+     * Eliminamos tarea
+     */
+    @DeleteMapping("/tareas/{id}")
+    public ResponseEntity<Void> deleteTarea(@PathVariable Long id){
+        Optional<Tarea> tarea = tareaRepository.findById(id);
+        if(tarea.isPresent()){
+            tareaRepository.delete(tarea.get());
+            return ResponseEntity.noContent().build();
+        }
+        else{
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     
 }

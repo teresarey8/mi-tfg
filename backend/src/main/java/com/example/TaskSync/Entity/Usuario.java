@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,4 +21,9 @@ public class Usuario {
     private String nombre;
     private String email;
     private String password;
+    private String username;
+
+    @OneToMany
+    private List<Tarea> tareas;
+
 }
