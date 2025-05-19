@@ -1,7 +1,6 @@
 package com.example.TaskSync.Service;
 
 import com.example.TaskSync.Repository.UsuarioRepository;
-import org.example.gestionrestaurante.Repository.UserEntityRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

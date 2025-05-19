@@ -1,5 +1,6 @@
 package com.example.TaskSync.Repository;
 
+import com.example.TaskSync.Entity.Categoria;
 import com.example.TaskSync.Entity.Tarea;
 import com.example.TaskSync.Entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,4 +12,5 @@ import java.util.List;
 public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
     List<Tarea> findByUsuario(Usuario usuario);
+    List<Tarea> findByUsuarioAndCategoria(Usuario usuario, Categoria categoria);
 }

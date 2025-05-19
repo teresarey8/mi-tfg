@@ -1,6 +1,7 @@
 package com.example.TaskSync.Entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,29 +15,41 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table( name= "tareas")
+@Table(name = "tareas")
 public class Tarea {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "El título de la tarea es obligatorio")
+    @Size(max = 200, message = "El título no debe superar los 200 caracteres")
     private String titulo;
+
+    @NotBlank(message = "La descripción es obligatoria")
     private String descripcion;
+
+    @FutureOrPresent(message = "La fecha límite debe ser hoy o una futura")
     private LocalDate fecha_limite;
+
+    @NotBlank(message = "La prioridad es obligatoria")
     private String prioridad;
+
+    @NotBlank(message = "El estado es obligatorio")
     private String estado;
+
+    @PastOrPresent(message = "La fecha de creación no puede ser futura")
     private LocalDate fecha_creacion;
 
-    // muchas tareas pueden pertenecer a un solo usuario
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
+    @NotNull(message = "La tarea debe estar asociada a un usuario")
     private Usuario usuario;
 
-    //muchas tareas pueden tener la misma categoría
     @ManyToOne
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
-    //una tarea puede tener varios recordatorios
     @OneToMany(mappedBy = "tarea", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Recordatorio> recordatorios;
 }
+
