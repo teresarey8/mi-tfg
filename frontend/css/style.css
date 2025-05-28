@@ -1,0 +1,139 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  background-image: url("/frontend/image/fondo.jpg");
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  flex-direction: column;
+}
+
+h2 {
+  text-align: center;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 30px;
+  font-size: 40px;
+  font-family: 'fantasy';
+}
+
+#titulo {
+  position: relative;
+  font-size: 3rem;
+  color: #2d3436;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 2px solid #2d3436;
+  width: 0;
+  animation: escribir 3s steps(30) forwards, parpadeo 0.7s step-end infinite;
+
+  /* Mejora visual */
+  padding: 10px 20px;
+  border-radius: 12px;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+#titulo::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.15); /* menos opaco */
+  backdrop-filter: blur(3px); /* menos blur */
+  border-radius: 12px;
+  z-index: -1;
+}
+
+
+@keyframes escribir {
+  to { width: 24ch; } /* ajusta según el texto */
+}
+
+@keyframes parpadeo {
+  50% { border-color: transparent; }
+}
+
+
+input.form-control {
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+input.form-control:focus {
+  border-color: #905436;
+  box-shadow: 0 0 5px rgba(93, 173, 226, 0.5);
+}
+
+button.btn {
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+button#loginBtn {
+  width: 100%;
+  background-color: #ba8eca;
+  border: none;
+}
+
+button#loginBtn:hover {
+  background-color: #2980b9;
+}
+
+button#registrarBtn {
+  width: 100%;
+  background-color: #6c757d;
+  border: none;
+}
+
+button#registrarBtn:hover {
+  background-color: #5a6268;
+}
+
+
+.modal-content {
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header, .modal-footer {
+  border: none;
+}
+
+.modal-title {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+#registerModal .form-control {
+  border-radius: 10px;
+}
+
+
+.modal-footer .btn-primary {
+  background-color: #28a745;
+  border: none;
+}
+
+.modal-footer .btn-primary:hover {
+  background-color: #218838;
+}
+
+.modal-footer .btn-secondary {
+  background-color: #dc3545;
+  border: none;
+}
+
+.modal-footer .btn-secondary:hover {
+  background-color: #c82333;
+}

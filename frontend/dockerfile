@@ -1,0 +1,8 @@
+# Usa Nginx para servir archivos estáticos
+FROM nginx:1.25-alpine
+
+# Copia TODOS tus archivos estáticos a la carpeta de Nginx
+COPY . /usr/share/nginx/html
+
+# Puerto expuesto (para acceder desde el navegador)
+EXPOSE 80
