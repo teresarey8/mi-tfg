@@ -33,6 +33,10 @@ public class Usuario implements UserDetails {
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
+    private String apellidos;
+
+    private Long telefono;
+
     @Email(message = "El email no es válido")
     @NotBlank(message = "El email es obligatorio")
     private String email;
@@ -43,6 +47,8 @@ public class Usuario implements UserDetails {
 
     @NotBlank(message = "El nombre de usuario es obligatorio")
     private String username;
+
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

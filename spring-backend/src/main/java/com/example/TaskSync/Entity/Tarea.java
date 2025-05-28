@@ -34,7 +34,6 @@ public class Tarea {
     @NotBlank(message = "La prioridad es obligatoria")
     private String prioridad;
 
-    @NotBlank(message = "El estado es obligatorio")
     private String estado;
 
     @PastOrPresent(message = "La fecha de creación no puede ser futura")
@@ -51,5 +50,13 @@ public class Tarea {
 
     @OneToMany(mappedBy = "tarea", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Recordatorio> recordatorios;
+
+    //Así, estado será null en el objeto, y el @PrePersist lo rellenará con "PENDIENTE" antes de guardar.
+    @PrePersist
+    public void prePersist() {
+        if (estado == null || estado.trim().isEmpty()) {
+            estado = "PENDIENTE";
+        }
+    }
 }
 

@@ -31,8 +31,8 @@ public class crearTareaDTO {
     @Pattern(regexp = "^(Baja|Media|Alta)$", message = "La prioridad debe ser Baja, Media o Alta")
     private String prioridad;
 
-    @NotBlank(message = "El estado es obligatorio")
     @Pattern(regexp = "^(Pendiente|En progreso|Completada)$", message = "El estado debe ser Pendiente, En progreso o Completada")
+    @Null(message = "El estado se genera automáticamente y no debe enviarse")
     private String estado;
 
     private LocalDate fecha_creacion;

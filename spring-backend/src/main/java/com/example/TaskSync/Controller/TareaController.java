@@ -63,13 +63,16 @@ public class TareaController {
             categoria = categoriaRepository.findById(crearTareaDTO.getCategoria().getId())
                     .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
         }
+        String estado = crearTareaDTO.getEstado();
+        if (estado == null || estado.trim().isEmpty()) {
+            estado = "PENDIENTE";  // Valor por defecto cuando no se envía estado
+        }
 
         Tarea tarea = Tarea.builder()
                 .titulo(crearTareaDTO.getTitulo())
                 .descripcion(crearTareaDTO.getDescripcion())
-                .fecha_limite(crearTareaDTO.getFecha_limite())
                 .prioridad(crearTareaDTO.getPrioridad())
-                .estado(crearTareaDTO.getEstado())
+                .estado(estado)
                 .fecha_creacion(crearTareaDTO.getFecha_creacion())
                 .usuario(user)
                 .categoria(categoria)
