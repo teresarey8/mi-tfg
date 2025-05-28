@@ -1,51 +1,71 @@
-version: '3.9'
+version: '3.8'
 
 services:
-  backend:
-    build: ./backend
-    container_name: mi-tfg-spring
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mongodb
-    environment:
-      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/PlanSync
-    networks:
-      - my_network
-
   frontend:
-    build: ./frontend
-    container_name: mi-tfg-frontend
+    image: nginx:alpine
     ports:
       - "4200:80"
-    depends_on:
-      - backend
-    networks:
-      - my_network
-
-  mongodb:
-    image: mongo:latest
-    container_name: mi-tfg-mongodb
-    ports:
-      - "27017:27017"
     volumes:
-      - mongo_data:/data/db
+      - ./frontend:/usr/share/nginx/html
     networks:
-      - my_network
+      - tfg-network
 
-  nodeapi:
-      build:
-        context: ./nodeapi
-      ports:
-        - "4000:4000"
-      depends_on:
-        - mongodb
-      networks:
-        - my_network
+  spring:
+    build: ./spring-backend
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/midb
+      SPRING_DATASOURCE_USERNAME: teresa
+      SPRING_DATASOURCE_PASSWORD: 1234
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - tfg-network
 
-volumes:
-  mongo_data:
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: midb
+      MYSQL_USER: teresa
+      MYSQL_PASSWORD: 1234
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - tfg-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: teresa
+      PMA_PASSWORD: 1234
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - tfg-network
 
 networks:
-  my_network:
+  tfg-network:
     driver: bridge
+
+volumes:
+  mysql-data:
