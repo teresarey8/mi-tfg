@@ -1,12 +1,15 @@
 async function register() {
   const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-  const password2 = document.getElementById("password2").value;
+  const password = document.getElementById("password").value.trim();
+  const password2 = document.getElementById("password2").value.trim() ;
   const email = document.getElementById("email").value;
   const rol = document.getElementById("roles").value;
   const nombre = document.getElementById("nombre").value;
   const apellidos = document.getElementById("apellidos").value;
   const telefono = document.getElementById("telefono").value;
+
+  console.log("password:", password);
+  console.log("password2:", password2);
 
   // Validar que las contraseñas coinciden
   if (password !== password2) {
@@ -27,7 +30,9 @@ async function register() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ username, password, email, roles: rol, nombre, apellidos, telefono })
+
+      body: JSON.stringify({ username, password, password2, email, roles: rol, nombre, apellidos, telefono },
+          )
     });
 
     if (!registerResponse.ok) {
@@ -71,7 +76,7 @@ async function login(providedUsername, providedPassword) {
     localStorage.setItem("username", data.username);
 
     // Redirigir automáticamente después del login exitoso
-    location.href = "tareas.html";
+    window.location.href = "tareas.html";
   } catch (error) {
     console.error("Error:", error);
     alert("Hubo un error en la autenticación.");

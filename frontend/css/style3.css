@@ -1,0 +1,23 @@
+body {
+    background-image: url("../image/fondo.jpg");
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+h2 {
+    color: #343a40;
+    text-align: center;
+}
+
+.color-box {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    border: 1px solid #ccc;
+    margin-right: 5px;
+}
+
+.btn {
+    min-width: 80px;
+}

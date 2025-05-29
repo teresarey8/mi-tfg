@@ -1,0 +1,80 @@
+/* General */
+body {
+  background-image: url("../image/fondo.jpg");
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  color: #343a40;
+}
+
+/* Tabla */
+table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table thead th {
+  text-align: center;
+  vertical-align: middle;
+}
+
+table tbody td {
+  vertical-align: middle;
+}
+
+/* Botones */
+button {
+  transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+  transform: scale(1.02);
+}
+
+/* Diálogo de tarea */
+dialog {
+  border: none;
+  border-radius: 10px;
+  background-color: #fff;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Inputs y Selects */
+input[type="text"],
+input[type="datetime-local"],
+textarea,
+select {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  transition: border-color 0.3s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #0d6efd;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Títulos */
+h1, h2 {
+  color: #212529;
+}
+
+/* Categorías por color (si lo deseas) */
+td[data-categoria="Trabajo"] {
+  background-color: #fff3cd;
+}
+
+td[data-categoria="Personal"] {
+  background-color: #d1ecf1;
+}
+
+td[data-categoria="Estudio"] {
+  background-color: #e2e3e5;
+}

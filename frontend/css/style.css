@@ -4,7 +4,7 @@
   box-sizing: border-box;
 }
 body {
-  background-image: url("/frontend/image/fondo.jpg");
+  background-image: url("../image/fondo.jpg");
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   align-items: center;
