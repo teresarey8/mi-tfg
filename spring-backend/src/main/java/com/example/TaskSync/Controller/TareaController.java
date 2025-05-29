@@ -1,11 +1,13 @@
 package com.example.TaskSync.Controller;
 
+import com.example.TaskSync.DTO.crearTareaDTO;
 import com.example.TaskSync.Entity.Categoria;
 import com.example.TaskSync.Entity.Tarea;
 import com.example.TaskSync.Entity.Usuario;
 import com.example.TaskSync.Repository.CategoriaRepository;
 import com.example.TaskSync.Repository.TareaRepository;
 import com.example.TaskSync.Repository.UsuarioRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +50,7 @@ public class TareaController {
      * Crear una nueva tarea
      */
     @PostMapping("/tareas")
-    public ResponseEntity<?> crearTarea(Authentication authentication, @RequestBody Tarea crearTareaDTO) {
+    public ResponseEntity<?> crearTarea(Authentication authentication, @RequestBody @Valid crearTareaDTO dto) {
         if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado.");
         }
@@ -57,31 +59,29 @@ public class TareaController {
         Usuario user = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // Verificar si la categoría existe y pertenece al usuario
+        // Cargar categoría si viene especificada
         Categoria categoria = null;
-        if (crearTareaDTO.getCategoria() != null) {
-            categoria = categoriaRepository.findById(crearTareaDTO.getCategoria().getId())
+        if (dto.getCategoriaId() != null) {
+            categoria = categoriaRepository.findById(dto.getCategoriaId())
                     .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
         }
-        String estado = crearTareaDTO.getEstado();
-        if (estado == null || estado.trim().isEmpty()) {
-            estado = "PENDIENTE";  // Valor por defecto cuando no se envía estado
-        }
 
+        // Crear entidad Tarea desde el DTO
         Tarea tarea = Tarea.builder()
-                .titulo(crearTareaDTO.getTitulo())
-                .descripcion(crearTareaDTO.getDescripcion())
-                .prioridad(crearTareaDTO.getPrioridad())
-                .estado(estado)
-                .fecha_creacion(crearTareaDTO.getFecha_creacion())
+                .titulo(dto.getTitulo())
+                .descripcion(dto.getDescripcion())
+                .fecha_limite(dto.getFecha_limite())
+                .prioridad(dto.getPrioridad())
                 .usuario(user)
                 .categoria(categoria)
-                .recordatorios(crearTareaDTO.getRecordatorios())
                 .build();
+
+
 
         Tarea nuevaTarea = tareaRepository.save(tarea);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaTarea);
     }
+
 
     /**
      * Obtener una tarea por ID

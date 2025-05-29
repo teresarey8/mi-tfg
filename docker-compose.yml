@@ -10,7 +10,7 @@ services:
     networks:
       - tfg-network
 
-  spring:
+  backend:
     build: ./spring-backend
     ports:
       - "8081:8081"

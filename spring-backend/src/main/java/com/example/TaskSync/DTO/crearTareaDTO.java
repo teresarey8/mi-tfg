@@ -13,7 +13,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class crearTareaDTO {
-    private Long id;
 
     @NotBlank(message = "El título es obligatorio")
     @Size(max = 100, message = "El título no puede tener más de 100 caracteres")
@@ -28,17 +27,8 @@ public class crearTareaDTO {
     private LocalDate fecha_limite;
 
     @NotBlank(message = "La prioridad es obligatoria")
-    @Pattern(regexp = "^(Baja|Media|Alta)$", message = "La prioridad debe ser Baja, Media o Alta")
+    @Pattern(regexp = "^(Baja|baja|Media|media|Alta|alta)$", message = "La prioridad debe ser Baja, Media o Alta")
     private String prioridad;
 
-    @Pattern(regexp = "^(Pendiente|En progreso|Completada)$", message = "El estado debe ser Pendiente, En progreso o Completada")
-    @Null(message = "El estado se genera automáticamente y no debe enviarse")
-    private String estado;
-
-    private LocalDate fecha_creacion;
-
-    private Long usuario;
-
-    private Long categoria;
-
+    private Long categoriaId;
 }

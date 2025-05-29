@@ -34,6 +34,7 @@ public class Tarea {
     @NotBlank(message = "La prioridad es obligatoria")
     private String prioridad;
 
+    @Column(nullable = false)
     private String estado;
 
     @PastOrPresent(message = "La fecha de creación no puede ser futura")
@@ -51,12 +52,18 @@ public class Tarea {
     @OneToMany(mappedBy = "tarea", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Recordatorio> recordatorios;
 
-    //Así, estado será null en el objeto, y el @PrePersist lo rellenará con "PENDIENTE" antes de guardar.
+    //Esto asegura que cuando se persista una nueva tarea, el estado y la fecha de creación se asignen automáticamente, incluso si no se lo pusieras desde el controlador.
+
     @PrePersist
     public void prePersist() {
-        if (estado == null || estado.trim().isEmpty()) {
-            estado = "PENDIENTE";
+        if (this.estado == null) {
+            this.estado = "pendiente";
+        }
+        if (this.fecha_creacion == null) {
+            this.fecha_creacion = LocalDate.now();
         }
     }
+
+
 }
 
