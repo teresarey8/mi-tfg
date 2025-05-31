@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -24,7 +25,7 @@ public class crearTareaDTO {
 
     @NotNull(message = "La fecha límite es obligatoria")
     @FutureOrPresent(message = "La fecha límite debe ser hoy o una fecha futura")
-    private LocalDate fecha_limite;
+    private LocalDateTime fecha_limite;
 
     @NotBlank(message = "La prioridad es obligatoria")
     @Pattern(regexp = "^(Baja|baja|Media|media|Alta|alta)$", message = "La prioridad debe ser Baja, Media o Alta")

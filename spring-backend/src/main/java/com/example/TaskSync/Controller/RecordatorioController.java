@@ -66,9 +66,11 @@ public class RecordatorioController {
         Recordatorio recordatorio = Recordatorio.builder()
                 .fecha_recordatorio(crearRecordatorioDTO.getFecha_recordatorio())
                 .titulo(crearRecordatorioDTO.getTitulo())
+                .frecuencia(crearRecordatorioDTO.getFrecuencia())
                 .usuario(user)
                 .tarea(tarea)
                 .build();
+
 
         Recordatorio nuevoRecordatorio = recordatorioRepository.save(recordatorio);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoRecordatorio);
@@ -102,6 +104,8 @@ public class RecordatorioController {
                     recordatorio.setTitulo(nuevoRecordatorioDTO.getTitulo());
                     recordatorio.setTarea(tarea);
                     recordatorio.setFecha_recordatorio(nuevoRecordatorioDTO.getFecha_recordatorio());
+                    recordatorio.setFrecuencia(nuevoRecordatorioDTO.getFrecuencia());
+
                     return ResponseEntity.ok(recordatorioRepository.save(recordatorio));
                 })
                 .orElse(ResponseEntity.notFound().build());

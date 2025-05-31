@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.NotBlank;
 
+import java.util.List;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -31,4 +33,7 @@ public class Categoria {
     @JoinColumn(name = "usuario_id")
     @NotNull(message = "La categoría debe estar asociada a un usuario")
     private Usuario usuario;
+
+    @OneToMany(mappedBy = "categoria")
+    private List<Tarea> tareas;
 }

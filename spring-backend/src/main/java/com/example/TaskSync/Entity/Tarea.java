@@ -6,8 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -29,7 +32,7 @@ public class Tarea {
     private String descripcion;
 
     @FutureOrPresent(message = "La fecha límite debe ser hoy o una futura")
-    private LocalDate fecha_limite;
+    private LocalDateTime fecha_limite;
 
     @NotBlank(message = "La prioridad es obligatoria")
     private String prioridad;
@@ -37,6 +40,7 @@ public class Tarea {
     @Column(nullable = false)
     private String estado;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @PastOrPresent(message = "La fecha de creación no puede ser futura")
     private LocalDate fecha_creacion;
 

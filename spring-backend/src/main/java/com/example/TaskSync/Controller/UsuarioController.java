@@ -1,5 +1,6 @@
 package com.example.TaskSync.Controller;
 
+import com.example.TaskSync.DTO.UserResponseDTO;
 import com.example.TaskSync.Entity.Tarea;
 import com.example.TaskSync.Entity.Usuario;
 import com.example.TaskSync.Repository.TareaRepository;
@@ -9,7 +10,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -92,4 +96,23 @@ public class UsuarioController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    //para que aparezca la información del usuario, y no tener que meter todo en el token
+    @GetMapping("/usuario/perfil")
+    public ResponseEntity<UserResponseDTO> obtenerPerfil(Authentication authentication) {
+        Usuario usuario = usuarioRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
+        UserResponseDTO dto = UserResponseDTO.builder()
+                .username(usuario.getUsername())
+                .email(usuario.getEmail())
+                .nombre(usuario.getNombre())
+                .apellidos(usuario.getApellidos())
+                .telefono(usuario.getTelefono())
+                .build();
+
+        return ResponseEntity.ok(dto);
+    }
+
+
 }

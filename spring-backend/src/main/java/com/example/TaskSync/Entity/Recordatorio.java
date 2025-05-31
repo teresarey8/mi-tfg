@@ -32,10 +32,15 @@ public class Recordatorio {
     @Size(max = 200, message = "El título no debe superar los 200 caracteres")
     private String titulo;
 
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "La frecuencia es obligatoria")
+    private Frecuencia frecuencia;
+
+
     @ManyToOne
     @JoinColumn(name = "tarea_id", nullable = false)
-    @NotNull(message = "El recordatorio debe estar asociado a una tarea")
     private Tarea tarea;
+
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)

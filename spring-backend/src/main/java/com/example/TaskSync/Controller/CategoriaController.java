@@ -83,16 +83,20 @@ public class CategoriaController {
     }
 
     /**
-     * Eliminar una categoría
+     * Eliminar una categoría, teniendo en cuenta si tiene tareas asociadas
      */
     @DeleteMapping("/categorias/{id}")
     public ResponseEntity<Void> deleteCategoria(@PathVariable Long id) {
         Optional<Categoria> categoria = categoriaRepository.findById(id);
         if (categoria.isPresent()) {
+            if (!categoria.get().getTareas().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build(); // o 400
+            }
             categoriaRepository.delete(categoria.get());
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();
         }
     }
+
 }
