@@ -11,5 +11,7 @@ import java.util.List;
 @Repository
 public interface RecordatorioRepository extends JpaRepository<Recordatorio, Long> {
     List<Recordatorio> findByUsuario(Usuario usuario);
+    List<Recordatorio> findByTarea(Tarea tarea);
+
 
 }

@@ -1,5 +1,6 @@
 package com.example.TaskSync.Entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -54,6 +55,7 @@ public class Tarea {
     private Categoria categoria;
 
     @OneToMany(mappedBy = "tarea", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Recordatorio> recordatorios;
 
     //Esto asegura que cuando se persista una nueva tarea, el estado y la fecha de creación se asignen automáticamente, incluso si no se lo pusieras desde el controlador.

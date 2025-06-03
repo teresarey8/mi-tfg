@@ -1,6 +1,7 @@
 package com.example.TaskSync.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
@@ -38,7 +39,8 @@ public class Recordatorio {
 
 
     @ManyToOne
-    @JoinColumn(name = "tarea_id", nullable = false)
+    @JoinColumn(name = "tarea_id")
+    @JsonBackReference
     private Tarea tarea;
 
 

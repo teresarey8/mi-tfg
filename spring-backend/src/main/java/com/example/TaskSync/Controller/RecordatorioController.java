@@ -124,5 +124,33 @@ public class RecordatorioController {
             return ResponseEntity.notFound().build();
         }
     }
+    @GetMapping("/recordatorios/tarea/{tareaId}")
+    public ResponseEntity<List<Recordatorio>> getRecordatoriosPorTarea(
+            @PathVariable Long tareaId,
+            Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String username = authentication.getName();
+        Usuario user = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Verificar que la tarea pertenece a este usuario (por seguridad)
+        Tarea tarea = tareaRepository.findById(tareaId)
+                .orElseThrow(() -> new RuntimeException("Tarea no encontrada"));
+
+        if (!tarea.getUsuario().getId().equals(user.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // Obtener recordatorios asociados a la tarea
+        List<Recordatorio> recordatorios = recordatorioRepository.findByTarea(tarea);
+
+        return ResponseEntity.ok(recordatorios);
+    }
+
+
+
 }
 
