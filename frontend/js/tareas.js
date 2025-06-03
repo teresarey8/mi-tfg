@@ -1,17 +1,32 @@
-document.addEventListener("DOMContentLoaded", () => {
-    obtenerTareas();
-    cargarCategorias();
-    cargarCategoriasParaFiltro(); // 🔍 nuevo
+let tareasCargadas = false;
+let categoriasCargadas = false;
 
-    document.getElementById("nuevaTareaBtn").addEventListener("click", nuevaTarea);
-    document.getElementById("openDialogAddTareaBtn").addEventListener("click", abrirDialogoTarea);
-    document.getElementById("cancelTareaBtn").addEventListener("click", cerrarDialogoTarea);
-    document.getElementById("BtnLogout").addEventListener("click", logout);
-    document.getElementById("BtnCategorias").addEventListener("click", () => {
+document.addEventListener("DOMContentLoaded", function() {
+    if (!tareasCargadas) {
+        obtenerTareas();
+        tareasCargadas = true;
+    }
+
+    if (!categoriasCargadas) {
+        cargarCategorias();
+        cargarCategoriasParaFiltro();
+        categoriasCargadas = true;
+    }
+
+    const limpiarListener = (id, evento, funcion) => {
+        const elemento = document.getElementById(id);
+        elemento.removeEventListener(evento, funcion);
+        elemento.addEventListener(evento, funcion);
+    };
+
+    limpiarListener("nuevaTareaBtn", "click", nuevaTarea);
+    limpiarListener("openDialogAddTareaBtn", "click", abrirDialogoTarea);
+    limpiarListener("cancelTareaBtn", "click", cerrarDialogoTarea);
+    limpiarListener("BtnLogout", "click", logout);
+    limpiarListener("BtnCategorias", "click", () => {
         window.location.href = "categorias.html";
     });
-
-    document.getElementById("filtroCategoria").addEventListener("change", (e) => {
+    limpiarListener("filtroCategoria", "change", (e) => {
         const categoriaId = e.target.value;
         if (categoriaId === "") {
             obtenerTareas();
@@ -50,23 +65,38 @@ function limpiarFormulario() {
 
 async function obtenerTareas() {
     const token = localStorage.getItem("token");
+    const container = document.getElementById("cardContainer");
+    container.innerHTML = "<div class='text-center'><div class='spinner-border text-primary' role='status'><span class='visually-hidden'>Cargando...</span></div></div>";
 
     try {
-        const response = await fetch("http://localhost:8081/tareas", {
-            method: "GET",
+        const response = await fetch("http://localhost:8081/tareas?" + new Date().getTime(), {
             headers: {
                 "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
+                "Cache-Control": "no-cache"
+            },
+            cache: 'no-store'
         });
 
         if (!response.ok) throw new Error(await response.text());
 
         const tareas = await response.json();
-        renderizarTareas(tareas);
+
+        // Filtrar tareas duplicadas
+        const tareasUnicas = [];
+        const idsVistos = new Set();
+
+        for (const tarea of tareas) {
+            if (!idsVistos.has(tarea.id)) {
+                idsVistos.add(tarea.id);
+                tareasUnicas.push(tarea);
+            }
+        }
+
+        renderizarTareas(tareasUnicas);
 
     } catch (error) {
         console.error("Error al obtener tareas:", error);
+        container.innerHTML = `<div class="alert alert-danger">Error al cargar tareas: ${error.message}</div>`;
     }
 }
 
@@ -185,19 +215,34 @@ async function cargarCategorias() {
 
 async function cargarCategoriasParaFiltro() {
     const token = localStorage.getItem("token");
+    const select = document.getElementById("filtroCategoria");
+    select.innerHTML = '<option value="">-- Todas --</option>';
 
     try {
-        const response = await fetch("http://localhost:8081/categorias", {
-            headers: { "Authorization": `Bearer ${token}` }
+        const response = await fetch("http://localhost:8081/categorias?" + new Date().getTime(), {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Cache-Control": "no-cache"
+            },
+            cache: 'no-store'
         });
 
         if (!response.ok) throw new Error("Error al obtener categorías");
 
         const categorias = await response.json();
-        const select = document.getElementById("filtroCategoria");
-        select.innerHTML = '<option value="">-- Todas --</option>';
+
+        // Filtrar categorías duplicadas
+        const categoriasUnicas = [];
+        const nombresVistos = new Set();
 
         categorias.forEach(cat => {
+            if (!nombresVistos.has(cat.nombre)) {
+                nombresVistos.add(cat.nombre);
+                categoriasUnicas.push(cat);
+            }
+        });
+
+        categoriasUnicas.forEach(cat => {
             const option = document.createElement("option");
             option.value = cat.id;
             option.textContent = cat.nombre;
@@ -206,7 +251,7 @@ async function cargarCategoriasParaFiltro() {
 
     } catch (err) {
         console.error(err);
-        alert("No se pudieron cargar las categorías para el filtro");
+        select.innerHTML = '<option value="">Error al cargar categorías</option>';
     }
 }
 

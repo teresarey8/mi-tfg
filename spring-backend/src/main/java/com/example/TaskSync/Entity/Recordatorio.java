@@ -1,7 +1,7 @@
 package com.example.TaskSync.Entity;
 
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
@@ -40,11 +40,12 @@ public class Recordatorio {
 
     @ManyToOne
     @JoinColumn(name = "tarea_id")
-    @JsonBackReference
+    @JsonIgnoreProperties
     private Tarea tarea;
 
 
     @ManyToOne
+    @JsonIgnoreProperties
     @JoinColumn(name = "usuario_id", nullable = false)
     @NotNull(message = "El recordatorio debe estar asociado a un usuario")
     private Usuario usuario;

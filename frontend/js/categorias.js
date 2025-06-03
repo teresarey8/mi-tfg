@@ -11,6 +11,7 @@ async function obtenerCategorias() {
     try {
         const response = await fetch("http://localhost:8081/categorias", {
             headers: {
+                "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
             }
         });
@@ -139,6 +140,7 @@ async function borrarCategoria(id) {
         const response = await fetch(`http://localhost:8081/categorias/${id}`, {
             method: "DELETE",
             headers: {
+                "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
             }
         });

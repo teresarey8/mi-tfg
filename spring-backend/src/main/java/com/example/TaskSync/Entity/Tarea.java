@@ -1,6 +1,6 @@
 package com.example.TaskSync.Entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -11,7 +11,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -46,16 +45,18 @@ public class Tarea {
     private LocalDate fecha_creacion;
 
     @ManyToOne
+    @JsonIgnoreProperties
     @JoinColumn(name = "usuario_id", nullable = false)
     @NotNull(message = "La tarea debe estar asociada a un usuario")
     private Usuario usuario;
 
     @ManyToOne
+    @JsonIgnoreProperties
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
     @OneToMany(mappedBy = "tarea", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonIgnoreProperties
     private List<Recordatorio> recordatorios;
 
     //Esto asegura que cuando se persista una nueva tarea, el estado y la fecha de creación se asignen automáticamente, incluso si no se lo pusieras desde el controlador.

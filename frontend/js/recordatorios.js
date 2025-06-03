@@ -1,3 +1,5 @@
+let recordatoriosCargados = false;
+
 document.addEventListener("DOMContentLoaded", async () => {
     await cargarRecordatorios();
 });
@@ -141,15 +143,32 @@ document.getElementById("cancelarRecordatorioBtn").addEventListener("click", () 
 });
 async function obtenerRecordatoriosPorTarea(tareaId) {
     const token = localStorage.getItem("token");
+
     try {
-        const response = await fetch(`http://localhost:8081/recordatorios/tarea/${tareaId}`, {
+        const response = await fetch(`http://localhost:8081/recordatorios/tarea/${tareaId}?${new Date().getTime()}`, {
             headers: {
-                "Authorization": `Bearer ${token}`
+                "Authorization": `Bearer ${token}`,
+                "Cache-Control": "no-cache"
+            },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) throw new Error("Error al obtener recordatorios");
+
+        const recordatorios = await response.json();
+
+        // Filtrar recordatorios duplicados
+        const recordatoriosUnicos = [];
+        const idsVistos = new Set();
+
+        recordatorios.forEach(r => {
+            if (!idsVistos.has(r.id)) {
+                idsVistos.add(r.id);
+                recordatoriosUnicos.push(r);
             }
         });
-        if (!response.ok) throw new Error("Error al obtener recordatorios");
-        const recordatorios = await response.json();
-        return recordatorios;
+
+        return recordatoriosUnicos;
     } catch (error) {
         console.error("Error al obtener recordatorios:", error);
         return [];
