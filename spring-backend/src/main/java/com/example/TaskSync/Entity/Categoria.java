@@ -1,5 +1,6 @@
 package com.example.TaskSync.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -31,12 +32,12 @@ public class Categoria {
     private String color;
 
     @ManyToOne
-    @JsonIgnoreProperties
+    @JsonIgnore
     @JoinColumn(name = "usuario_id")
     @NotNull(message = "La categoría debe estar asociada a un usuario")
     private Usuario usuario;
 
     @OneToMany(mappedBy = "categoria")
-    @JsonIgnoreProperties
+    @JsonIgnore
     private List<Tarea> tareas;
 }

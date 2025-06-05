@@ -108,7 +108,6 @@ public class UsuarioController {
                 .email(usuario.getEmail())
                 .nombre(usuario.getNombre())
                 .apellidos(usuario.getApellidos())
-                .telefono(usuario.getTelefono())
                 .build();
 
         return ResponseEntity.ok(dto);

@@ -1,5 +1,6 @@
 package com.example.TaskSync.Entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,7 +12,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 
 import java.util.Collection;
 import java.util.List;
@@ -35,8 +35,6 @@ public class Usuario implements UserDetails {
 
     private String apellidos;
 
-    private Long telefono;
-
     @Email(message = "El email no es válido")
     @NotBlank(message = "El email es obligatorio")
     private String email;
@@ -49,25 +47,17 @@ public class Usuario implements UserDetails {
     private String username;
 
 
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Rol> roles;
-
-    @OneToMany
+    @OneToMany(mappedBy = "usuario")
+    @JsonManagedReference
     private List<Tarea> tareas;
+
 
     // Métodos de seguridad
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles.stream()
-                .map(rol -> new SimpleGrantedAuthority(rol.getNombre()))
-                .toList();
+        return List.of(); // No se devuelve ningún rol, pero tampoco lo quiero quitar
     }
+
 
     @Override public String getPassword() { return this.password; }
     @Override public String getUsername() { return this.username; }

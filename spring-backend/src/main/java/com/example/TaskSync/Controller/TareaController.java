@@ -106,7 +106,6 @@ public class TareaController {
                     tarea.setEstado(nuevaTarea.getEstado());
                     tarea.setCategoria(nuevaTarea.getCategoria());
                     tarea.setDescripcion(nuevaTarea.getDescripcion());
-                    tarea.setRecordatorios(nuevaTarea.getRecordatorios());
                     return ResponseEntity.ok(tareaRepository.save(tarea));
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -129,18 +128,26 @@ public class TareaController {
     /**
      * Obtener tareas por categoría (filtrar)
      */
-    @GetMapping("/categoria/{categoriaId}")
-    public ResponseEntity<List<Tarea>> getTareasPorCategoria(@PathVariable Long categoriaId, Authentication authentication) {
+    @GetMapping("/tareas/categoria/{categoriaId}")
+    public ResponseEntity<List<Tarea>> getTareasPorCategoria(
+            @PathVariable Long categoriaId,
+            Authentication authentication) {
+
         if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String username = authentication.getName();
-        Usuario user = usuarioRepository.findByUsername(username)
+        // Verificar si la categoría existe y pertenece al usuario
+        Usuario user = usuarioRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         Categoria categoria = categoriaRepository.findById(categoriaId)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+
+        // Validar que la categoría pertenezca al usuario
+        if (!categoria.getUsuario().equals(user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
         List<Tarea> tareas = tareaRepository.findByUsuarioAndCategoria(user, categoria);
         return ResponseEntity.ok(tareas);
