@@ -97,19 +97,26 @@ public class TareaController {
      * Modificar una tarea
      */
     @PutMapping("/tareas/{id}")
-    public ResponseEntity<Tarea> editTarea(@PathVariable Long id, @RequestBody Tarea nuevaTarea) {
-        return tareaRepository.findById(id)
-                .map(tarea -> {
-                    tarea.setTitulo(nuevaTarea.getTitulo());
-                    tarea.setFecha_limite(nuevaTarea.getFecha_limite());
-                    tarea.setPrioridad(nuevaTarea.getPrioridad());
-                    tarea.setEstado(nuevaTarea.getEstado());
-                    tarea.setCategoria(nuevaTarea.getCategoria());
-                    tarea.setDescripcion(nuevaTarea.getDescripcion());
-                    return ResponseEntity.ok(tareaRepository.save(tarea));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Tarea> editTarea(@PathVariable Long id, @RequestBody crearTareaDTO nuevaTareaDTO) {
+        return tareaRepository.findById(id).map(tarea -> {
+            tarea.setTitulo(nuevaTareaDTO.getTitulo());
+            tarea.setDescripcion(nuevaTareaDTO.getDescripcion());
+            tarea.setFecha_limite(nuevaTareaDTO.getFecha_limite());
+            tarea.setPrioridad(nuevaTareaDTO.getPrioridad());
+
+            if (nuevaTareaDTO.getCategoriaId() != null) {
+                Categoria cat = categoriaRepository.findById(nuevaTareaDTO.getCategoriaId())
+                        .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+                tarea.setCategoria(cat);
+            } else {
+                tarea.setCategoria(null);
+            }
+
+            Tarea tareaActualizada = tareaRepository.save(tarea);
+            return ResponseEntity.ok(tareaActualizada);
+        }).orElse(ResponseEntity.notFound().build());
     }
+
 
     /**
      * Eliminar una tarea
