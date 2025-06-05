@@ -156,6 +156,39 @@ async function borrarCategoria(id) {
         alert(err.message);
     }
 }
+//para el edit de tareas
+async function cargarCategoriasSelect() {
+    const token = localStorage.getItem("token");
+    try {
+        const response = await fetch("http://localhost:8081/categorias", {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) throw new Error("Error al cargar categorías");
+
+        const categorias = await response.json();
+        const select = document.getElementById("categoria_id");
+        select.innerHTML = '<option value="">Selecciona una categoría</option>';
+
+        categorias.forEach(cat => {
+            const option = document.createElement("option");
+            option.value = cat.id;
+            option.textContent = cat.nombre;
+            select.appendChild(option);
+        });
+
+        return categorias; // útil para validaciones
+
+    } catch (err) {
+        console.error(err);
+        alert("No se pudieron cargar las categorías");
+    }
+}
+
+
 
 function logout() {
     localStorage.removeItem("token");
