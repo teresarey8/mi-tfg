@@ -38,6 +38,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function abrirDialogoTarea() {
     const dialog = document.getElementById("nuevaTareaDialog");
+    document.getElementById("tituloModal").textContent = "Crear nueva tarea";
+
     dialog.showModal();
 
     const fechaInput = document.getElementById("fecha_limite");
@@ -121,27 +123,28 @@ async function obtenerTareasPorCategoria(categoriaId) {
     }
 }
 
-async function renderizarTareas(tareas) {
+function renderizarTareas(tareas) {
     const container = document.getElementById("cardContainer");
     container.innerHTML = "";
 
     for (const tarea of tareas) {
-        const recordatorios = await obtenerRecordatoriosPorTarea(tarea.id);
-
-        const recordatoriosHTML = recordatorios.length > 0
-            ? `<ul class="list-group list-group-flush mb-2">
-                ${recordatorios.map(r => `
-                    <li class="list-group-item p-1">
-                        <i class="bi bi-bell-fill text-warning"></i> ${r.titulo} — 
-                        <small>${new Date(r.fecha).toLocaleString('es-ES')}</small>
-                    </li>
-                `).join('')}
-               </ul>`
-            : `<p class="text-muted fst-italic">No hay recordatorios</p>`;
-
         const cardCol = document.createElement("div");
         cardCol.className = "col-md-4";
         cardCol.id = `container${tarea.id}`;
+
+        // obtenemos el color de la categoría (si no existe, asigna un color por defecto)
+        let colorCategoria = "#6c757d";
+        if (tarea.categoria && tarea.categoria.color) {
+            colorCategoria = tarea.categoria.color;
+        } else if (tarea.categoria && tarea.categoria.nombre) {
+            // Asignar color según nombre (puedes modificarlo)
+            switch (tarea.categoria.nombre.toLowerCase()) {
+                case "trabajo": colorCategoria = "#ffc107"; break; // amarillo
+                case "personal": colorCategoria = "#17a2b8"; break; // azul
+                case "estudio": colorCategoria = "#6c757d"; break; // gris
+                default: colorCategoria = "#6c757d"; break;
+            }
+        }
 
         const card = document.createElement("div");
         card.className = "flip-card";
@@ -150,7 +153,7 @@ async function renderizarTareas(tareas) {
         });
 
         card.innerHTML = `
-            <div class="flip-card-inner">
+  <div class="categoria-color" style="border-top-color: ${colorCategoria};"></div>            <div class="flip-card-inner">
               <div class="flip-card-front">
                 <h5>${tarea.titulo}</h5>
                 <p><strong>Fecha límite:</strong><br>${new Date(tarea.fecha_limite).toLocaleString('es-ES', {
@@ -162,19 +165,11 @@ async function renderizarTareas(tareas) {
                   <p><strong>Descripción:</strong> ${tarea.descripcion}</p>
                   <p><strong>Prioridad:</strong> ${tarea.prioridad}</p>
                   <p><strong>Estado:</strong> ${tarea.estado}</p>
-                  <p><strong>Categoría:</strong> ${tarea.categoria ? tarea.categoria.nombre : 'Sin categoría'}</p>
-                  <hr>
-                  <h6>Recordatorios:</h6>
-                  ${recordatoriosHTML}
+                  <!-- Ya no mostramos categoría en texto -->
                 </div>
-                <div class="mt-2 d-flex flex-column gap-2">
-                  <button class="btn btn-warning btn-sm" onclick="event.stopPropagation(); abrirDialogRecordatorio(${tarea.id})">
-                    <i class="bi bi-bell"></i> Añadir recordatorio
-                  </button>
-                  <div class="d-flex justify-content-between">
-                    <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); editarTarea(${tarea.id})">Editar</button>
-                    <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); borrarTarea(${tarea.id})">Borrar</button>
-                  </div>
+                <div class="mt-2 d-flex justify-content-between">
+                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); editarTarea(${tarea.id})">Editar</button>
+                  <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); borrarTarea(${tarea.id})">Borrar</button>
                 </div>
               </div>
             </div>
@@ -216,7 +211,7 @@ async function cargarCategorias() {
 async function cargarCategoriasParaFiltro() {
     const token = localStorage.getItem("token");
     const select = document.getElementById("filtroCategoria");
-    select.innerHTML = '<option value="">-- Todas --</option>';
+    select.innerHTML = '<option value="">Todas</option>';
 
     try {
         const response = await fetch("http://localhost:8081/categorias?" + new Date().getTime(), {
@@ -279,8 +274,10 @@ async function nuevaTarea() {
         descripcion: document.getElementById("descripcion").value,
         fecha_limite: fechaISO,
         prioridad: document.getElementById("prioridad").value,
-        categoriaId: parseInt(categoriaId)
+        categoriaId: parseInt(categoriaId),
+        estado: document.getElementById("estado").value
     };
+
 
     try {
         const url = tareaId
@@ -318,6 +315,8 @@ async function nuevaTarea() {
 
 async function borrarTarea(id) {
     const token = localStorage.getItem("token");
+    const confirmar = confirm("¿Estás seguro de que quieres borrar esta categoría?");
+    if (!confirmar) return;
 
     try {
         const response = await fetch(`http://localhost:8081/tareas/${id}`, {
@@ -343,29 +342,32 @@ async function editarTarea(id) {
         const response = await fetch(`http://localhost:8081/tareas/${id}`, {
             method: "GET",
             headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
+                "Authorization": `Bearer ${token}`
             }
         });
 
-        if (!response.ok) throw new Error("No se pudo obtener la tarea");
+        if (!response.ok) throw new Error("Error al obtener la tarea");
 
         const tarea = await response.json();
 
-        document.getElementById("titulo").value = tarea.titulo || "";
-        document.getElementById("descripcion").value = tarea.descripcion || "";
-        document.getElementById("fecha_limite").value = new Date(tarea.fecha_limite).toISOString().slice(0, 16);
-        document.getElementById("prioridad").value = tarea.prioridad || "MEDIA";
-        document.getElementById("categoria_id").value = tarea.categoria?.id || "";
-        document.getElementById("tareaIdEdit").value = tarea.id;
+        await cargarCategorias(); // cargar antes de asignar categoría
 
+        document.getElementById("tareaIdEdit").value = tarea.id;
+        document.getElementById("titulo").value = tarea.titulo;
+        document.getElementById("descripcion").value = tarea.descripcion;
+        document.getElementById("fecha_limite").value = tarea.fecha_limite?.slice(0, 16);
+        document.getElementById("prioridad").value = tarea.prioridad;
+        document.getElementById("estado").value = tarea.estado;
+        document.getElementById("categoria_id").value = tarea.categoria?.id || "";
+
+        document.getElementById("tituloModal").textContent = "Editar tarea";
         document.getElementById("nuevaTareaDialog").showModal();
 
     } catch (error) {
-        console.error("Error al cargar tarea para editar:", error);
-        alert("Error al cargar tarea para editar");
+        console.error("Error al editar tarea:", error);
     }
 }
+
 
 function logout() {
     localStorage.removeItem("token");

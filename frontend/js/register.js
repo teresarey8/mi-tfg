@@ -3,10 +3,8 @@ async function register() {
   const password = document.getElementById("password").value.trim();
   const password2 = document.getElementById("password2").value.trim() ;
   const email = document.getElementById("email").value;
-  const rol = document.getElementById("roles").value;
   const nombre = document.getElementById("nombre").value;
   const apellidos = document.getElementById("apellidos").value;
-  const telefono = document.getElementById("telefono").value;
 
   console.log("password:", password);
   console.log("password2:", password2);
@@ -18,7 +16,7 @@ async function register() {
   }
 
   // Validar que todos los campos están llenos
-  if (!username || !password || !email || !rol || !nombre || !apellidos || !telefono) {
+  if (!username || !password || !email || !rol || !nombre || !apellidos) {
     alert("Por favor, completa todos los campos.");
     return;
   }
@@ -31,7 +29,7 @@ async function register() {
         "Content-Type": "application/json"
       },
 
-      body: JSON.stringify({ username, password, password2, email, roles: rol, nombre, apellidos, telefono },
+      body: JSON.stringify({ username, password, password2, email, nombre, apellidos },
           )
     });
 

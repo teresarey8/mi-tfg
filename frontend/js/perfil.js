@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("perfilApellidos").textContent = usuario.apellidos;
             document.getElementById("perfilEmail").textContent = usuario.email;
             document.getElementById("perfilUsername").textContent = usuario.username;
-            document.getElementById("perfilTelefono").textContent = usuario.telefono;
         })
         .catch(error => {
             console.error("Error al obtener perfil:", error);

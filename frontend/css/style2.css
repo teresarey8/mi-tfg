@@ -96,6 +96,7 @@ h1, h2 {
   height: 300px; /* Aumentado para mejor visualización */
   margin-bottom: 1.5rem;
   cursor: pointer;
+  position: relative;
 }
 
 .flip-card-inner {
@@ -143,7 +144,7 @@ h1, h2 {
 }
 
 .flip-card-back {
-  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("../image/fondoTareas.jpg");
+  background: url("../image/fondoTareas.jpg");
   background-size: cover;
   background-position: center;
   color: white;
@@ -201,19 +202,6 @@ h1, h2 {
   width: 100%;
   font-size: 0.9rem;
   padding: 0.5rem;
-}
-
-/* Categorías */
-[data-categoria="Trabajo"] {
-  background-color: #fff3cd;
-}
-
-[data-categoria="Personal"] {
-  background-color: #d1ecf1;
-}
-
-[data-categoria="Estudio"] {
-  background-color: #e2e3e5;
 }
 
 /* Select de categorías */
