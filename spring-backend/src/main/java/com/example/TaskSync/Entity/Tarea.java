@@ -35,7 +35,8 @@ public class Tarea {
 
     private int duracionMinutos; // duración en minutos (pomodoro típico = 25)
 
-    private boolean completada;
+    @Column(nullable = false)
+    private Boolean completada = false;
 
     private LocalDateTime horaInicio; // cuándo empieza
 
@@ -56,15 +57,19 @@ public class Tarea {
 
     @ManyToOne
     @JoinColumn(name = "tarea_padre_id")
-    private Tarea tareaPadre; // tarea que la activa
+    @JsonIgnoreProperties({"subtareas", "tareaSiguiente"}) // Evita recursión
+    private Tarea tareaPadre;
 
     @OneToOne
     @JoinColumn(name = "tarea_siguiente_id")
-    private Tarea tareaSiguiente; // tarea que se activa tras esta
+    @JsonIgnoreProperties({"tareaPadre", "subtareas"})
+    private Tarea tareaSiguiente;
 
     private boolean notificarAlTerminar = true;
 
-
+    @OneToMany(mappedBy = "tareaPadre", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"tareaPadre", "tareaSiguiente"})
+    private List<Tarea> subtareas;
 
 }
 

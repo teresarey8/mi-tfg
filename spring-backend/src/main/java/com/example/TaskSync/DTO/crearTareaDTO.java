@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-
 @Data
 @Builder
 @AllArgsConstructor
@@ -23,13 +22,13 @@ public class crearTareaDTO {
     @Size(max = 500, message = "La descripción no puede tener más de 500 caracteres")
     private String descripcion;
 
+    @Min(value = 1, message = "La duración debe ser al menos 1 minuto")
     private int duracionMinutos;
 
-    private String tipo; // "trabajo" o "descanso"
+    @Pattern(regexp = "trabajo|descanso", message = "El tipo debe ser 'trabajo' o 'descanso'")
+    private String tipo;
 
-    @NotNull(message = "La hora de inicio es obligatoria")
-    private LocalDateTime horaInicio;
-
+    private LocalDateTime horaInicio; // Cambiado a no obligatorio
 
     private Long categoriaId;
 
@@ -37,5 +36,8 @@ public class crearTareaDTO {
 
     private Long tareaSiguienteId;
 
-    private boolean notificarAlTerminar;
+    @Builder.Default
+    private boolean notificarAlTerminar = true;
+
+    private Boolean completada; // Añadido para manejar el estado
 }
