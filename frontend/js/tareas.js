@@ -4,62 +4,90 @@ const token = localStorage.getItem("token");
 document.addEventListener("DOMContentLoaded", () => {
     cargarCategorias();
     obtenerTareas();
-
-    const filtro = document.getElementById("filtroCategoria");
-    filtro.addEventListener("change", filtrarPorCategoria);
+    document.getElementById("filtroCategoria").addEventListener("change", filtrarPorCategoria);
 });
 
 let temporizadorInterval = null;
 let tiempoRestanteSegundos = 0;
 let tareaActual = null;
 
-async function obtenerTareas() {
-    const res = await fetch(`${API}/tareas`, {
-        headers: { Authorization: `Bearer ${token}` }
+function construirArbolTareas(tareas) {
+    const mapaTareas = {};
+    tareas.forEach(t => (mapaTareas[t.id] = { ...t, subtareas: [] }));
+
+    const tareasRaiz = [];
+    tareas.forEach(t => {
+        if (t.tareaPadreId) {
+            mapaTareas[t.tareaPadreId]?.subtareas.push(mapaTareas[t.id]);
+        } else {
+            tareasRaiz.push(mapaTareas[t.id]);
+        }
     });
-    const tareas = await res.json();
-    mostrarTareas(tareas);
-    resetTemporizador();
+
+    return tareasRaiz;
+}
+
+async function obtenerTareas() {
+    try {
+        const res = await fetch(`${API}/tareas`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Error al cargar tareas");
+        const tareas = await res.json();
+        const tareasArbol = construirArbolTareas(tareas);
+        mostrarTareas(tareasArbol);
+        resetTemporizador();
+    } catch (error) {
+        console.error(error);
+        alert("No se pudieron cargar las tareas");
+    }
 }
 
 function mostrarTareas(tareas, contenedor = document.getElementById("tareasContainer"), nivel = 0) {
-    if (nivel === 0) contenedor.innerHTML = ""; // Limpia solo al principio
+    if (nivel === 0) {
+        contenedor.innerHTML = "";
+    }
 
     tareas.forEach(tarea => {
-        const col = document.createElement("div");
-        col.className = "col-md-12"; // Usa ancho completo para subtareas
-        col.style.marginLeft = `${nivel * 30}px`; // Sangría visual
+        const tareaWrapper = document.createElement("div");
+        tareaWrapper.className = `tarea-nivel-${nivel}`;
+        tareaWrapper.style.marginLeft = `${nivel * 30}px`;
 
-        col.innerHTML = `
-      <div class="card mb-2" style="border-left: 5px solid ${nivel === 0 ? '#007bff' : '#28a745'};">
-        <div class="card-body p-2">
-          <h6>${tarea.titulo}</h6>
-          <p class="mb-1">${tarea.descripcion}</p>
-          <p class="mb-1"><strong>Inicio:</strong> ${tarea.horaInicio?.replace("T", " ").slice(0, 16)}</p>
-          <p class="mb-1"><strong>Duración:</strong> ${tarea.duracionMinutos} min</p>
-          <p class="mb-1"><strong>Tipo:</strong> ${tarea.tipo}</p>
-          <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-sm btn-primary btn-pomodoro">Pomodoro</button>
-            <button class="btn btn-sm btn-secondary btn-subtarea">Crear subtarea</button>
-            <button class="btn btn-sm btn-warning" onclick="editarTarea(${tarea.id})">Editar</button>
-            <button class="btn btn-sm btn-danger" onclick="borrarTarea(${tarea.id})">Borrar</button>
-          </div>
-        </div>
-      </div>
-    `;
+        const card = document.createElement("div");
+        card.className = `card tarea nivel-${nivel} ${nivel > 0 ? 'subtarea' : ''}`;
 
-        contenedor.appendChild(col);
+        card.innerHTML = `
+            <div class="card-body">
+                <h6 class="mb-1 d-flex align-items-center">
+                    ${tarea.titulo}
+                    ${nivel > 0 ? '<span class="etiqueta-subtarea">Subtarea</span>' : ''}
+                </h6>
+                <p class="mb-1">${tarea.descripcion || ""}</p>
+                <p class="mb-1"><strong>Inicio:</strong> ${tarea.horaInicio ? tarea.horaInicio.replace("T", " ").slice(0, 16) : 'No programada'}</p>
+                <p class="mb-1"><strong>Duración:</strong> ${tarea.duracionMinutos} min</p>
+                <p class="mb-1"><strong>Tipo:</strong> ${tarea.tipo}</p>
+                <div class="d-flex gap-2 flex-wrap mt-2">
+                    <button class="btn btn-sm btn-primary btn-pomodoro">Pomodoro</button>
+                    ${nivel < 2 ? '<button class="btn btn-sm btn-secondary btn-subtarea">Crear subtarea</button>' : ''}
+                    <button class="btn btn-sm btn-warning btn-editar">Editar</button>
+                    <button class="btn btn-sm btn-danger btn-borrar">Borrar</button>
+                </div>
+            </div>
+        `;
 
-        // Botón Pomodoro
-        const btnPomodoro = col.querySelector(".btn-pomodoro");
-        btnPomodoro.addEventListener("click", () => iniciarPomodoro(tarea));
+        // Event listeners (manteniendo tu implementación original)
+        card.querySelector(".btn-pomodoro").addEventListener("click", () => iniciarPomodoro(tarea));
+        if (nivel < 2) {
+            card.querySelector(".btn-subtarea")?.addEventListener("click", () => {
+                mostrarFormulario();
+                prepararFormularioSubtarea(tarea.id);
+            });
+        }
+        card.querySelector(".btn-editar").addEventListener("click", () => editarTarea(tarea.id));
+        card.querySelector(".btn-borrar").addEventListener("click", () => borrarTarea(tarea.id));
 
-        // Botón crear subtarea
-        const btnSubtarea = col.querySelector(".btn-subtarea");
-        btnSubtarea.addEventListener("click", () => {
-            mostrarFormulario();
-            prepararFormularioSubtarea(tarea.id);
-        });
+        tareaWrapper.appendChild(card);
+        contenedor.appendChild(tareaWrapper);
 
         // Mostrar subtareas recursivamente
         if (tarea.subtareas && tarea.subtareas.length > 0) {
@@ -69,40 +97,41 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
 }
 
 async function cargarCategorias() {
-    const res = await fetch(`${API}/categorias`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    const categorias = await res.json();
-    const select = document.getElementById("categoria_id");
-    const filtro = document.getElementById("filtroCategoria");
+    try {
+        const res = await fetch(`${API}/categorias`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Error al cargar categorías");
+        const categorias = await res.json();
 
-    select.innerHTML = filtro.innerHTML = `<option value="">Todas</option>`;
-    categorias.forEach(cat => {
-        const opt1 = new Option(cat.nombre, cat.id);
-        const opt2 = new Option(cat.nombre, cat.id);
-        select.add(opt1);
-        filtro.add(opt2);
-    });
+        const select = document.getElementById("categoria_id");
+        const filtro = document.getElementById("filtroCategoria");
+
+        select.innerHTML = filtro.innerHTML = `<option value="">Todas</option>`;
+        categorias.forEach(cat => {
+            select.add(new Option(cat.nombre, cat.id));
+            filtro.add(new Option(cat.nombre, cat.id));
+        });
+    } catch (error) {
+        console.error(error);
+        alert("No se pudieron cargar las categorías");
+    }
 }
 
 function mostrarFormulario() {
-    // Limpiar campo tareaPadreId para tarea independiente
-    document.getElementById("tareaPadreId").value = "";
+    limpiarFormulario();
     document.getElementById("tituloFormulario").textContent = "Nueva Tarea";
-    document.getElementById("tareaIdEdit").value = "";
-    document.getElementById("titulo").value = "";
-    document.getElementById("descripcion").value = "";
-    document.getElementById("duracion").value = "25";
-    document.getElementById("tipo").value = "trabajo";
-    document.getElementById("horaInicio").value = "";
-    document.getElementById("categoria_id").value = "";
-    document.getElementById("notificar").checked = true;
-
     document.getElementById("formularioTarea").showModal();
 }
 
 function prepararFormularioSubtarea(tareaPadreId) {
-    // Limpiar y preparar el formulario para subtarea
+    limpiarFormulario();
+    document.getElementById("tareaPadreId").value = tareaPadreId;
+    document.getElementById("tituloFormulario").textContent = "Crear subtarea";
+    document.getElementById("formularioTarea").showModal();
+}
+
+function limpiarFormulario() {
     document.getElementById("tareaIdEdit").value = "";
     document.getElementById("titulo").value = "";
     document.getElementById("descripcion").value = "";
@@ -110,15 +139,8 @@ function prepararFormularioSubtarea(tareaPadreId) {
     document.getElementById("tipo").value = "trabajo";
     document.getElementById("horaInicio").value = "";
     document.getElementById("categoria_id").value = "";
+    document.getElementById("tareaPadreId").value = "";
     document.getElementById("notificar").checked = true;
-
-    // Guardar tareaPadreId
-    document.getElementById("tareaPadreId").value = tareaPadreId;
-
-    // Cambiar título formulario
-    document.getElementById("tituloFormulario").textContent = "Crear subtarea";
-
-    document.getElementById("formularioTarea").showModal();
 }
 
 function cerrarFormulario() {
@@ -142,7 +164,6 @@ async function crearTarea() {
     const tareaIdEdit = document.getElementById("tareaIdEdit").value;
 
     try {
-        // Crear o actualizar la tarea principal
         const url = tareaIdEdit ? `${API}/tareas/${tareaIdEdit}` : `${API}/tareas`;
         const method = tareaIdEdit ? "PUT" : "POST";
 
@@ -155,13 +176,10 @@ async function crearTarea() {
             body: JSON.stringify(dto)
         });
 
-        if (!res.ok) {
-            throw new Error("Error al crear/editar la tarea");
-        }
+        if (!res.ok) throw new Error("Error al crear/editar la tarea");
 
         const tareaCreada = await res.json();
 
-        // Si es una nueva subtarea, actualizar el padre
         if (dto.tareaPadreId && !tareaIdEdit) {
             await actualizarTareaPadre(dto.tareaPadreId, tareaCreada.id);
         }
@@ -169,163 +187,142 @@ async function crearTarea() {
         cerrarFormulario();
         obtenerTareas();
     } catch (error) {
-        console.error("Error:", error);
+        console.error(error);
         alert(error.message);
     }
 }
 
 async function actualizarTareaPadre(tareaPadreId, tareaSiguienteId) {
     try {
-        // Primero obtenemos la tarea padre actual
         const resPadre = await fetch(`${API}/tareas/${tareaPadreId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
-
-        if (!resPadre.ok) {
-            throw new Error("Error al obtener la tarea padre");
-        }
+        if (!resPadre.ok) throw new Error("Error al obtener la tarea padre");
 
         const tareaPadre = await resPadre.json();
 
-        // Actualizamos solo el campo tareaSiguienteId
         const resActualiza = await fetch(`${API}/tareas/${tareaPadreId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({
-                tareaSiguienteId: tareaSiguienteId,
-                // Mantenemos todos los otros campos igual
-                titulo: tareaPadre.titulo,
-                descripcion: tareaPadre.descripcion,
-                duracionMinutos: tareaPadre.duracionMinutos,
-                tipo: tareaPadre.tipo,
-                horaInicio: tareaPadre.horaInicio,
-                categoriaId: tareaPadre.categoria?.id,
-                notificarAlTerminar: tareaPadre.notificarAlTerminar,
-                completada: tareaPadre.completada
-            })
+            body: JSON.stringify({ ...tareaPadre, tareaSiguienteId })
         });
 
-        if (!resActualiza.ok) {
-            throw new Error("Error al actualizar la tarea padre");
-        }
+        if (!resActualiza.ok) throw new Error("Error al actualizar la tarea padre");
     } catch (error) {
         console.error("Error al actualizar tarea padre:", error);
-        throw error;
     }
 }
 
-
-
 async function editarTarea(id) {
-    const res = await fetch(`${API}/tareas/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    if (!res.ok) {
-        alert("Error al obtener tarea para editar");
-        return;
+    try {
+        const res = await fetch(`${API}/tareas/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Error al obtener tarea para editar");
+        const tarea = await res.json();
+
+        document.getElementById("tareaIdEdit").value = tarea.id;
+        document.getElementById("titulo").value = tarea.titulo;
+        document.getElementById("descripcion").value = tarea.descripcion;
+        document.getElementById("duracion").value = tarea.duracionMinutos;
+        document.getElementById("tipo").value = tarea.tipo;
+        document.getElementById("horaInicio").value = tarea.horaInicio ? tarea.horaInicio.slice(0, 16) : "";
+        document.getElementById("categoria_id").value = tarea.categoriaId || "";
+        document.getElementById("notificar").checked = tarea.notificarAlTerminar;
+        document.getElementById("tareaPadreId").value = tarea.tareaPadreId || "";
+
+        document.getElementById("tituloFormulario").textContent = "Editar tarea";
+        document.getElementById("formularioTarea").showModal();
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
     }
-    const tarea = await res.json();
-
-    document.getElementById("tareaIdEdit").value = tarea.id;
-    document.getElementById("titulo").value = tarea.titulo;
-    document.getElementById("descripcion").value = tarea.descripcion;
-    document.getElementById("duracion").value = tarea.duracionMinutos;
-    document.getElementById("tipo").value = tarea.tipo;
-    document.getElementById("horaInicio").value = tarea.horaInicio ? tarea.horaInicio.slice(0, 16) : "";
-    document.getElementById("categoria_id").value = tarea.categoriaId || "";
-    document.getElementById("notificar").checked = tarea.notificarAlTerminar;
-
-    // Si la tarea tiene tareaPadreId lo ponemos para editar
-    document.getElementById("tareaPadreId").value = tarea.tareaPadreId || "";
-
-    document.getElementById("tituloFormulario").textContent = "Editar tarea";
-
-    document.getElementById("formularioTarea").showModal();
 }
 
 async function borrarTarea(id) {
     if (!confirm("¿Seguro que quieres borrar esta tarea?")) return;
-    const res = await fetch(`${API}/tareas/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    if (!res.ok) {
-        alert("Error al borrar la tarea");
-        return;
+    try {
+        const res = await fetch(`${API}/tareas/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("Error al borrar la tarea");
+        obtenerTareas();
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
     }
-    obtenerTareas();
 }
 
 function filtrarPorCategoria() {
     const filtro = document.getElementById("filtroCategoria").value;
-    fetch(`${API}/tareas?categoriaId=${filtro}`, {
+    fetch(`${API}/tareas${filtro ? `?categoriaId=${filtro}` : ""}`, {
         headers: { Authorization: `Bearer ${token}` }
     })
         .then(res => res.json())
-        .then(tareas => mostrarTareas(tareas));
+        .then(tareas => {
+            const arbol = construirArbolTareas(tareas);
+            mostrarTareas(arbol);
+        })
+        .catch(error => {
+            console.error(error);
+            alert("Error al filtrar tareas");
+        });
 }
 
-// Temporizador Pomodoro básico (inicia y muestra cuenta atrás)
 async function iniciarPomodoro(tarea) {
     if (temporizadorInterval) clearInterval(temporizadorInterval);
 
-    // Actualizar horaInicio a "ahora" en backend antes de empezar temporizador
     const ahoraISO = new Date().toISOString().slice(0, 16);
 
-    const res = await fetch(`${API}/tareas/${tarea.id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            ...tarea,
-            horaInicio: ahoraISO
-        })
-    });
+    try {
+        const res = await fetch(`${API}/tareas/${tarea.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ ...tarea, horaInicio: ahoraISO })
+        });
 
-    if (!res.ok) {
-        alert("Error al actualizar hora de inicio");
-        return;
-    }
+        if (!res.ok) throw new Error("Error al actualizar hora de inicio");
 
-    tarea.horaInicio = ahoraISO; // actualizar localmente también
-    tareaActual = tarea;
-    tiempoRestanteSegundos = tarea.duracionMinutos * 60;
+        tarea.horaInicio = ahoraISO;
+        tareaActual = tarea;
+        tiempoRestanteSegundos = tarea.duracionMinutos * 60;
 
-    actualizarTemporizadorUI();
-
-    temporizadorInterval = setInterval(async () => {
-        tiempoRestanteSegundos--;
         actualizarTemporizadorUI();
 
-        if (tiempoRestanteSegundos <= 0) {
-            clearInterval(temporizadorInterval);
-            alert(`¡Pomodoro terminado para la tarea "${tarea.titulo}"!`);
+        temporizadorInterval = setInterval(async () => {
+            tiempoRestanteSegundos--;
+            actualizarTemporizadorUI();
 
-            // Usar el nuevo endpoint que maneja tanto tareas siguientes como subtareas
-            const resSiguiente = await fetch(`${API}/tareas/${tarea.id}/finalizar-y-empezar-siguiente`, {
-                method: "PUT",
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            if (tiempoRestanteSegundos <= 0) {
+                clearInterval(temporizadorInterval);
+                alert(`¡Pomodoro terminado para la tarea "${tarea.titulo}"!`);
 
-            if (resSiguiente.ok) {
-                const tareaSiguiente = await resSiguiente.json();
-                if (tareaSiguiente) {
-                    iniciarPomodoro(tareaSiguiente);
+                const resSiguiente = await fetch(`${API}/tareas/${tarea.id}/finalizar-y-empezar-siguiente`, {
+                    method: "PUT",
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (resSiguiente.ok) {
+                    const tareaSiguiente = await resSiguiente.json();
+                    if (tareaSiguiente) iniciarPomodoro(tareaSiguiente);
+                    else alert("No hay tarea siguiente para comenzar.");
+                } else if (resSiguiente.status !== 204) {
+                    alert("Error al obtener la tarea siguiente");
                 }
-            } else if (resSiguiente.status !== 204) { // 204 significa que no hay siguiente
-                alert("Error al obtener la tarea siguiente");
             }
-        }
-    }, 1000);
+        }, 1000);
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+    }
 }
-
 
 function actualizarTemporizadorUI() {
     const minutos = Math.floor(tiempoRestanteSegundos / 60).toString().padStart(2, "0");
@@ -337,6 +334,7 @@ function resetTemporizador() {
     if (temporizadorInterval) clearInterval(temporizadorInterval);
     document.getElementById("temporizador").textContent = "25:00";
 }
+
 function logout() {
     localStorage.removeItem("token");
     window.location.href = "index.html";
