@@ -22,8 +22,11 @@ services:
       mysql:
         condition: service_healthy
     restart: on-failure
+    volumes:
+      - ./uploads:/app/uploads  #aquí montas la carpeta local uploads en la ruta /app/uploads dentro del contenedor
     networks:
       - tfg-network
+
 
 
   mysql:

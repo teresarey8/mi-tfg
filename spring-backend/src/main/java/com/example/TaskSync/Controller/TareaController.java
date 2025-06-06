@@ -7,13 +7,13 @@ import com.example.TaskSync.Entity.Usuario;
 import com.example.TaskSync.Repository.CategoriaRepository;
 import com.example.TaskSync.Repository.TareaRepository;
 import com.example.TaskSync.Repository.UsuarioRepository;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,39 +48,48 @@ public class TareaController {
 
     /**
      * Crear una nueva tarea
+     *
      */
     @PostMapping("/tareas")
-    public ResponseEntity<?> crearTarea(Authentication authentication, @RequestBody @Valid crearTareaDTO dto) {
-        if (authentication == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado.");
-        }
-
+    public ResponseEntity<?> crearTarea(@RequestBody crearTareaDTO dto, Authentication authentication) {
         String username = authentication.getName();
-        Usuario user = usuarioRepository.findByUsername(username)
+        Usuario usuario = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // Cargar categoría si viene especificada
         Categoria categoria = null;
         if (dto.getCategoriaId() != null) {
-            categoria = categoriaRepository.findById(dto.getCategoriaId())
-                    .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+            categoria = categoriaRepository.findById(dto.getCategoriaId()).orElse(null);
         }
 
-        // Crear entidad Tarea desde el DTO
+        LocalDateTime horaInicio = dto.getHoraInicio();
+        if (horaInicio == null) {
+            horaInicio = LocalDateTime.now();
+        }
+
         Tarea tarea = Tarea.builder()
                 .titulo(dto.getTitulo())
                 .descripcion(dto.getDescripcion())
-                .fecha_limite(dto.getFecha_limite())
-                .prioridad(dto.getPrioridad())
-                .usuario(user)
+                .duracionMinutos(dto.getDuracionMinutos())
+                .tipo(dto.getTipo())
+                .horaInicio(horaInicio)
+                .horaFin(horaInicio.plusMinutes(dto.getDuracionMinutos()))
+                .usuario(usuario)
                 .categoria(categoria)
+                .notificarAlTerminar(dto.isNotificarAlTerminar())
                 .build();
 
+        if (dto.getTareaPadreId() != null) {
+            tarea.setTareaPadre(tareaRepository.findById(dto.getTareaPadreId()).orElse(null));
+        }
 
+        if (dto.getTareaSiguienteId() != null) {
+            tarea.setTareaSiguiente(tareaRepository.findById(dto.getTareaSiguienteId()).orElse(null));
+        }
 
-        Tarea nuevaTarea = tareaRepository.save(tarea);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaTarea);
+        tareaRepository.save(tarea);
+        return ResponseEntity.ok(tarea);
     }
+
 
 
     /**
@@ -97,25 +106,39 @@ public class TareaController {
      * Modificar una tarea
      */
     @PutMapping("/tareas/{id}")
-    public ResponseEntity<Tarea> editTarea(@PathVariable Long id, @RequestBody crearTareaDTO nuevaTareaDTO) {
-        return tareaRepository.findById(id).map(tarea -> {
-            tarea.setTitulo(nuevaTareaDTO.getTitulo());
-            tarea.setDescripcion(nuevaTareaDTO.getDescripcion());
-            tarea.setFecha_limite(nuevaTareaDTO.getFecha_limite());
-            tarea.setPrioridad(nuevaTareaDTO.getPrioridad());
+    public ResponseEntity<Tarea> actualizarTarea(
+            @PathVariable Long id,
+            @RequestBody crearTareaDTO dto,
+            Authentication authentication) {
 
-            if (nuevaTareaDTO.getCategoriaId() != null) {
-                Categoria cat = categoriaRepository.findById(nuevaTareaDTO.getCategoriaId())
-                        .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
-                tarea.setCategoria(cat);
-            } else {
-                tarea.setCategoria(null);
-            }
+        String username = authentication.getName();
+        Usuario usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-            Tarea tareaActualizada = tareaRepository.save(tarea);
-            return ResponseEntity.ok(tareaActualizada);
-        }).orElse(ResponseEntity.notFound().build());
+        Tarea tarea = tareaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tarea no encontrada"));
+
+        if (!tarea.getUsuario().equals(usuario)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        tarea.setTitulo(dto.getTitulo());
+        tarea.setDescripcion(dto.getDescripcion());
+        tarea.setDuracionMinutos(dto.getDuracionMinutos());
+        tarea.setTipo(dto.getTipo());
+        tarea.setHoraInicio(dto.getHoraInicio());
+        tarea.setHoraFin(dto.getHoraInicio().plusMinutes(dto.getDuracionMinutos()));
+        tarea.setNotificarAlTerminar(dto.isNotificarAlTerminar());
+
+        if (dto.getCategoriaId() != null) {
+            Categoria categoria = categoriaRepository.findById(dto.getCategoriaId()).orElse(null);
+            tarea.setCategoria(categoria);
+        }
+
+        tareaRepository.save(tarea);
+        return ResponseEntity.ok(tarea);
     }
+
 
 
     /**
@@ -159,4 +182,5 @@ public class TareaController {
         List<Tarea> tareas = tareaRepository.findByUsuarioAndCategoria(user, categoria);
         return ResponseEntity.ok(tareas);
     }
+
 }

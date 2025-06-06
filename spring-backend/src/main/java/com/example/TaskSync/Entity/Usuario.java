@@ -51,6 +51,10 @@ public class Usuario implements UserDetails {
     @JsonManagedReference
     private List<Tarea> tareas;
 
+    private String sobreMi;
+    private String curriculumUrl;
+
+
 
     // Métodos de seguridad
     @Override

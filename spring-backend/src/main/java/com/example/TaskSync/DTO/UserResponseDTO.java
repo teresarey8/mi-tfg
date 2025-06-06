@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
@@ -14,4 +15,8 @@ public class UserResponseDTO {
     private String email;
     private String nombre;
     private String apellidos;
+    private String sobreMi;
+    private String curriculumUrl;
+
+
 }

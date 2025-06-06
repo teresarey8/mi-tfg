@@ -23,13 +23,19 @@ public class crearTareaDTO {
     @Size(max = 500, message = "La descripción no puede tener más de 500 caracteres")
     private String descripcion;
 
-    @NotNull(message = "La fecha límite es obligatoria")
-    @FutureOrPresent(message = "La fecha límite debe ser hoy o una fecha futura")
-    private LocalDateTime fecha_limite;
+    private int duracionMinutos;
 
-    @NotBlank(message = "La prioridad es obligatoria")
-    @Pattern(regexp = "^(Baja|baja|Media|media|Alta|alta)$", message = "La prioridad debe ser Baja, Media o Alta")
-    private String prioridad;
+    private String tipo; // "trabajo" o "descanso"
+
+    @NotNull(message = "La hora de inicio es obligatoria")
+    private LocalDateTime horaInicio;
+
 
     private Long categoriaId;
+
+    private Long tareaPadreId;
+
+    private Long tareaSiguienteId;
+
+    private boolean notificarAlTerminar;
 }

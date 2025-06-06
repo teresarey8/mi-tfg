@@ -10,94 +10,50 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 
-
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 @RestController
 public class UsuarioController {
+
     @Autowired
     private UsuarioRepository usuarioRepository;
-    @Autowired
-    private TareaRepository tareaRepository;
 
-    @GetMapping("/usuarios")
-    public ResponseEntity<Page<Usuario>> getListUsuarios(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Usuario> usuarios = usuarioRepository.findAll(pageable);
-        return ResponseEntity.ok(usuarios);
-    }
+    @PostMapping("/usuario/perfil")
+    public ResponseEntity<?> actualizarPerfil(
+            @RequestParam("sobreMi") String sobreMi,
+            @RequestParam(value = "curriculum", required = false) MultipartFile curriculum,
+            Authentication auth
+    ) {
+        Usuario usuario = usuarioRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
-    @GetMapping("/usuarios/{id}")
-    public ResponseEntity<Usuario> getUsuario(@PathVariable Long id) {
-        return usuarioRepository.findById(id)
-                .map(usuario -> ResponseEntity.ok().body(usuario))
-                .orElse(ResponseEntity.notFound().build());
-    }
+        usuario.setSobreMi(sobreMi);
 
-    @PutMapping("/usuarios/{id}")
-    public ResponseEntity<Usuario> editUsuario(@RequestBody Usuario nuevoUsuario, @PathVariable Long id) {
-        return usuarioRepository.findById(id)
-                .map(usuario -> {
-                    usuario.setNombre(nuevoUsuario.getNombre());
-                    usuario.setEmail(nuevoUsuario.getEmail());
-                    return ResponseEntity.ok(usuarioRepository.save(usuario));
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/usuarios/{id}")
-    public ResponseEntity<Void> deleteUsuario(@PathVariable Long id) {
-        Optional<Usuario> usuario = usuarioRepository.findById(id);
-        if (usuario.isPresent()) {
-            usuarioRepository.delete(usuario.get());
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
+        if (curriculum != null && !curriculum.isEmpty()) {
+            try {
+                String curriculumFileName = UUID.randomUUID() + "_" + curriculum.getOriginalFilename();
+                Path ruta = Paths.get("uploads/" + curriculumFileName);
+                Files.createDirectories(ruta.getParent());
+                Files.write(ruta, curriculum.getBytes());
+                usuario.setCurriculumUrl("/uploads/" + curriculumFileName);
+            } catch (IOException e) {
+                return ResponseEntity.internalServerError().body("Error al guardar el archivo");
+            }
         }
+
+        usuarioRepository.save(usuario);
+        return ResponseEntity.ok("Perfil actualizado correctamente");
     }
 
-    @PostMapping("/usuarios/{id}/tareas")
-    public ResponseEntity<Usuario> insertTarea(@PathVariable Long id, @RequestBody Tarea tarea) {
-        Optional<Usuario> usuario = usuarioRepository.findById(id);
-        Optional<Tarea> tareaBD = tareaRepository.findById(tarea.getId());
-        if (usuario.isPresent() && tareaBD.isPresent()) {
-            usuario.get().getTareas().add(tareaBD.get());
-            usuarioRepository.save(usuario.get());
-            return ResponseEntity.ok(usuario.get());
-        }
-        return ResponseEntity.notFound().build();
-    }
-
-    @DeleteMapping("/usuarios/{idUsuario}/tareas/{idTarea}")
-    public ResponseEntity<Usuario> deleteTarea(@PathVariable Long idUsuario, @PathVariable Long idTarea) {
-        Optional<Usuario> usuario = usuarioRepository.findById(idUsuario);
-        Optional<Tarea> tarea = tareaRepository.findById(idTarea);
-        if (usuario.isPresent() && tarea.isPresent()) {
-            usuario.get().getTareas().remove(tarea.get());
-            return ResponseEntity.ok(usuario.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @GetMapping("/usuarios/{id}/tareas")
-    public ResponseEntity<List<Tarea>> getTareas(@PathVariable Long id) {
-        Optional<Usuario> usuario = usuarioRepository.findById(id);
-        if (usuario.isPresent() && !usuario.get().getTareas().isEmpty()) {
-            return ResponseEntity.ok(usuario.get().getTareas());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    //para que aparezca la información del usuario, y no tener que meter todo en el token
     @GetMapping("/usuario/perfil")
     public ResponseEntity<UserResponseDTO> obtenerPerfil(Authentication authentication) {
         Usuario usuario = usuarioRepository.findByUsername(authentication.getName())
@@ -108,10 +64,10 @@ public class UsuarioController {
                 .email(usuario.getEmail())
                 .nombre(usuario.getNombre())
                 .apellidos(usuario.getApellidos())
+                .sobreMi(usuario.getSobreMi())
+                .curriculumUrl(usuario.getCurriculumUrl())
                 .build();
 
         return ResponseEntity.ok(dto);
     }
-
-
 }

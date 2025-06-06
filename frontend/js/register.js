@@ -16,7 +16,7 @@ async function register() {
   }
 
   // Validar que todos los campos están llenos
-  if (!username || !password || !email || !rol || !nombre || !apellidos) {
+  if (!username || !password || !email || !nombre || !apellidos) {
     alert("Por favor, completa todos los campos.");
     return;
   }

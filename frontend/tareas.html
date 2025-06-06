@@ -1,95 +1,104 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gestor de Tareas</title>
-    <link rel="stylesheet" href="css/style2.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <script src="js/tareas.js" defer></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestor Pomodoro</title>
+  <link rel="stylesheet" href="css/style2.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <script src="js/pomodoro.js" defer></script>
+  <script src="js/tareas.js" defer></script>
+</head>
+<body class="bg-light">
+<div class="container py-4">
+  <header class="d-flex justify-content-between align-items-center mb-4 px-3 py-2 bg-white shadow rounded-3">
+    <h1 class="fw-bold m-0 text-dark">Gestor de Tareas Pomodoro</h1>
 
-  </head>
-  <body class="bg-light text-dark">
-  <div class="container py-4">
-    <!-- Header con botones alineados -->
-    <header class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="fw-bold m-0">Mis Tareas</h1>
+    <div class="d-flex gap-2 align-items-center">
+      <a href="categorias.html" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+        <i class="bi bi-tags-fill"></i>
+        <span>Categorías</span>
+      </a>
 
-      <div class="d-flex align-items-center gap-2">
-        <button id="BtnCategorias" class="btn btn-secondary">Categorías</button>
-        <a href="./perfil.html" class="btn btn-rosa-claro" title="Perfil de usuario">
-          <i class="bi bi-person-circle fs-5"></i> Perfil
-        </a>
+      <a href="perfil.html" class="btn btn-rosa-claro d-flex align-items-center gap-1" title="Perfil de usuario">
+        <i class="bi bi-person-circle fs-5"></i>
+        <span>Perfil</span>
+      </a>
 
-        <button class="btn btn-danger" id="BtnLogout">
-          <i class="bi bi-box-arrow-left"></i> Cerrar sesión
-        </button>
-      </div>
-    </header>
-
-    <div class="mb-4">
-      <label for="filtroCategoria" class="form-label fw-semibold fs-5">
-        Filtrar por categoría
-      </label>
-      <select id="filtroCategoria" class="form-select filtro-rosa">
-        <option value="">Todas</option>
-      </select>
+      <button class="btn btn-danger d-flex align-items-center gap-1" onclick="logout()">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Cerrar sesión</span>
+      </button>
     </div>
+  </header>
 
-    <!-- Contenedor de tareas -->
-    <main class="mb-4">
-      <div class="row g-3" id="cardContainer">
-        <!-- Las tareas se cargarán aquí dinámicamente -->
-      </div>
-    </main>
 
-    <!-- Botón para añadir tarea -->
-    <footer class="d-flex justify-content-end">
-      <button class="btn btn-success" id="openDialogAddTareaBtn">Añadir nueva tarea</button>
-    </footer>
+  <div class="mb-3">
+    <label for="filtroCategoria" class="form-label">Filtrar por categoría</label>
+    <select id="filtroCategoria" class="form-select">
+      <option value="">Todas</option>
+    </select>
   </div>
 
-  <dialog class="container p-4 bg-white rounded shadow" style="max-width: 600px;" id="nuevaTareaDialog">
-    <h2 id="tituloModal">Crear nueva tarea</h2>
+  <div id="temporizador" class="fs-4 text-center mb-3">25:00</div>
 
-    <div class="mb-3">
-      <label for="titulo" class="form-label">Título:</label>
-      <input class="form-control" type="text" id="titulo" placeholder="Ej: Estudiar para el examen">
+  <main>
+    <div class="row" id="tareasContainer"></div>
+  </main>
+
+  <button class="btn btn-success mt-4" onclick="mostrarFormulario()">Crear nueva tarea</button>
+
+  <!-- Formulario modal -->
+  <dialog id="formularioTarea" class="p-4 rounded border shadow" style="max-width: 600px;">
+    <h4 id="tituloFormulario">Nueva Tarea</h4>
+
+    <!-- Campo oculto para identificar si se está editando -->
+    <input type="hidden" id="tareaIdEdit">
+
+    <div class="mb-2">
+      <label for="titulo" class="form-label">Título</label>
+      <input type="text" id="titulo" class="form-control" placeholder="Título"/>
     </div>
 
-    <div class="mb-3">
-      <label for="descripcion" class="form-label">Descripción:</label>
-      <textarea class="form-control" id="descripcion" rows="3" placeholder="Añade detalles importantes..."></textarea>
+    <div class="mb-2">
+      <label for="descripcion" class="form-label">Descripción</label>
+      <textarea id="descripcion" class="form-control" placeholder="Descripción"></textarea>
     </div>
 
-    <div class="mb-3">
-      <label for="fecha_limite" class="form-label">Fecha y hora límite:</label>
-      <input type="datetime-local" id="fecha_limite" required>
+    <div class="mb-2">
+      <label for="horaInicio" class="form-label">Hora de inicio</label>
+      <input type="datetime-local" id="horaInicio" class="form-control"/>
     </div>
 
-    <div class="mb-3">
-      <label for="prioridad" class="form-label">Prioridad:</label>
-      <select class="form-control" id="prioridad">
-        <option value="Alta">Alta</option>
-        <option value="Media">Media</option>
-        <option value="Baja">Baja</option>
+    <div class="mb-2">
+      <label for="duracion" class="form-label">Duración (minutos)</label>
+      <input type="number" id="duracion" class="form-control" placeholder="Duración en minutos" value="25"/>
+    </div>
+
+    <div class="mb-2">
+      <label for="tipo" class="form-label">Tipo de tarea</label>
+      <select id="tipo" class="form-select">
+        <option value="trabajo">Trabajo</option>
+        <option value="descanso">Descanso</option>
       </select>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-2">
       <label for="categoria_id" class="form-label">Categoría</label>
-      <select id="categoria_id" class="form-select" required></select>
+      <select id="categoria_id" class="form-select"></select>
     </div>
-    <input type="hidden" id="tareaIdEdit">
 
-    <input type="hidden" id="estado" name="estado" value="pendiente" />
+    <div class="form-check mb-3">
+      <input type="checkbox" id="notificar" class="form-check-input" checked />
+      <label class="form-check-label" for="notificar">Notificar al terminar</label>
+    </div>
 
     <div class="d-flex justify-content-end gap-2">
-      <button class="btn btn-primary" id="nuevaTareaBtn">Guardar tarea</button>
-      <button class="btn btn-secondary" id="cancelTareaBtn">Cancelar</button>
+      <button class="btn btn-secondary" onclick="cerrarFormulario()">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearTarea()">Guardar</button>
     </div>
   </dialog>
-
-  </body>
+</div>
+</body>
 </html>

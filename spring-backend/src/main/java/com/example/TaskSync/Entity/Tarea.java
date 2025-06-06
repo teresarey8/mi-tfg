@@ -33,18 +33,15 @@ public class Tarea {
     @NotBlank(message = "La descripción es obligatoria")
     private String descripcion;
 
-    @FutureOrPresent(message = "La fecha límite debe ser hoy o una futura")
-    private LocalDateTime fecha_limite;
+    private int duracionMinutos; // duración en minutos (pomodoro típico = 25)
 
-    @NotBlank(message = "La prioridad es obligatoria")
-    private String prioridad;
+    private boolean completada;
 
-    @Column(nullable = false)
-    private String estado;
+    private LocalDateTime horaInicio; // cuándo empieza
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    @PastOrPresent(message = "La fecha de creación no puede ser futura")
-    private LocalDate fecha_creacion;
+    private LocalDateTime horaFin; // cuándo termina
+
+    private String tipo; // "trabajo" o "descanso"
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
@@ -57,17 +54,16 @@ public class Tarea {
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
-    //Esto asegura que cuando se persista una nueva tarea, el estado y la fecha de creación se asignen automáticamente, incluso si no se lo pusieras desde el controlador.
+    @ManyToOne
+    @JoinColumn(name = "tarea_padre_id")
+    private Tarea tareaPadre; // tarea que la activa
 
-    @PrePersist
-    public void prePersist() {
-        if (this.estado == null) {
-            this.estado = "pendiente";
-        }
-        if (this.fecha_creacion == null) {
-            this.fecha_creacion = LocalDate.now();
-        }
-    }
+    @OneToOne
+    @JoinColumn(name = "tarea_siguiente_id")
+    private Tarea tareaSiguiente; // tarea que se activa tras esta
+
+    private boolean notificarAlTerminar = true;
+
 
 
 }
