@@ -38,10 +38,6 @@ public class Tarea {
     @Column(nullable = false)
     private Boolean completada = false;
 
-    private LocalDateTime horaInicio; // cuándo empieza
-
-    private LocalDateTime horaFin; // cuándo termina
-
     private String tipo; // "trabajo" o "descanso"
 
     @ManyToOne
@@ -69,6 +65,7 @@ public class Tarea {
     @OneToMany(mappedBy = "tareaPadre", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"tareaPadre", "tareaSiguiente"})
     private List<Tarea> subtareas;
+
 
 
 }

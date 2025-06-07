@@ -28,8 +28,6 @@ public class crearTareaDTO {
     @Pattern(regexp = "trabajo|descanso", message = "El tipo debe ser 'trabajo' o 'descanso'")
     private String tipo;
 
-    private LocalDateTime horaInicio; // Cambiado a no obligatorio
-
     private Long categoriaId;
 
     private Long tareaPadreId;

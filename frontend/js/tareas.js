@@ -39,7 +39,6 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
   <div class="card-body p-2">
     <h4 class="fw-bold">${tarea.titulo}</h4>
     <p class="mb-1">${tarea.descripcion}</p>
-    <p class="mb-1"><strong>Inicio:</strong> ${tarea.horaInicio?.replace("T", " ").slice(0, 16)}</p>
     <p class="mb-1"><strong>Duración:</strong> ${tarea.duracionMinutos} min</p>
     <p class="mb-1"><strong>Tipo:</strong> ${tarea.tipo}</p>
     <div class="d-flex gap-2 flex-wrap">
@@ -138,7 +137,6 @@ function limpiarFormulario() {
     document.getElementById("descripcion").value = "";
     document.getElementById("duracion").value = "00";
     document.getElementById("tipo").value = "trabajo";
-    document.getElementById("horaInicio").value = "";
     document.getElementById("categoria_id").value = "";
     document.getElementById("tareaPadreId").value = "";
     document.getElementById("notificar").checked = true;
@@ -154,7 +152,6 @@ async function crearTarea() {
         descripcion: document.getElementById("descripcion").value,
         duracionMinutos: parseInt(document.getElementById("duracion").value),
         tipo: document.getElementById("tipo").value,
-        horaInicio: document.getElementById("horaInicio").value || null,
         categoriaId: document.getElementById("categoria_id").value ? parseInt(document.getElementById("categoria_id").value) : null,
         tareaPadreId: document.getElementById("tareaPadreId").value ? parseInt(document.getElementById("tareaPadreId").value) : null,
         tareaSiguienteId: null,
@@ -230,7 +227,6 @@ async function editarTarea(id) {
         document.getElementById("descripcion").value = tarea.descripcion;
         document.getElementById("duracion").value = tarea.duracionMinutos;
         document.getElementById("tipo").value = tarea.tipo;
-        document.getElementById("horaInicio").value = tarea.horaInicio ? tarea.horaInicio.slice(0, 16) : "";
         document.getElementById("categoria_id").value = tarea.categoriaId || "";
         document.getElementById("notificar").checked = tarea.notificarAlTerminar;
         document.getElementById("tareaPadreId").value = tarea.tareaPadreId || "";
@@ -270,12 +266,10 @@ async function iniciarPomodoro(tarea) {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({...tarea, horaInicio: ahoraISO})
+            body: JSON.stringify({...tarea})
         });
 
-        if (!res.ok) throw new Error("Error al actualizar hora de inicio");
 
-        tarea.horaInicio = ahoraISO;
         tareaActual = tarea;
         tiempoRestanteSegundos = tarea.duracionMinutos * 60;
 

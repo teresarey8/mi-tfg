@@ -55,18 +55,11 @@ public class TareaController {
             categoria = categoriaRepository.findById(dto.getCategoriaId()).orElse(null);
         }
 
-        LocalDateTime horaInicio = dto.getHoraInicio();
-        if (horaInicio == null) {
-            horaInicio = LocalDateTime.now();
-        }
-
         Tarea tarea = Tarea.builder()
                 .titulo(dto.getTitulo())
                 .descripcion(dto.getDescripcion())
                 .duracionMinutos(dto.getDuracionMinutos())
                 .tipo(dto.getTipo())
-                .horaInicio(horaInicio)
-                .horaFin(horaInicio.plusMinutes(dto.getDuracionMinutos()))
                 .usuario(usuario)
                 .categoria(categoria)
                 .completada(false)
@@ -122,10 +115,7 @@ public class TareaController {
         if (dto.getTipo() != null) {
             tarea.setTipo(dto.getTipo());
         }
-        if (dto.getHoraInicio() != null) {
-            tarea.setHoraInicio(dto.getHoraInicio());
-            tarea.setHoraFin(dto.getHoraInicio().plusMinutes(dto.getDuracionMinutos()));
-        }
+
         if (dto.getCategoriaId() != null) {
             Categoria categoria = categoriaRepository.findById(dto.getCategoriaId()).orElse(null);
             tarea.setCategoria(categoria);
@@ -188,7 +178,6 @@ public class TareaController {
         return ResponseEntity.notFound().build();
     }
 
-    // NUEVO ENDPOINT PARA INICIAR POMODORO Y MARCAR HORA ACTUAL
     @PutMapping("/tareas/{id}/iniciar")
     public ResponseEntity<?> iniciarTareaAhora(@PathVariable Long id, @RequestBody Map<String, String> body, Authentication authentication) {
         String username = authentication.getName();
@@ -202,9 +191,6 @@ public class TareaController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        LocalDateTime horaInicio = LocalDateTime.parse(body.get("horaInicio"));
-        tarea.setHoraInicio(horaInicio);
-        tarea.setHoraFin(horaInicio.plusMinutes(tarea.getDuracionMinutos()));
         tareaRepository.save(tarea);
 
         return ResponseEntity.ok().build();
@@ -248,9 +234,6 @@ public class TareaController {
         }
 
         if (siguiente != null) {
-            LocalDateTime ahora = LocalDateTime.now();
-            siguiente.setHoraInicio(ahora);
-            siguiente.setHoraFin(ahora.plusMinutes(siguiente.getDuracionMinutos()));
             siguiente.setCompletada(false); // asegurarse
             tareaRepository.save(siguiente);
 
