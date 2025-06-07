@@ -10,16 +10,16 @@
   <script src="js/tareas.js" defer></script>
 </head>
 <body class="bg-light">
-<div class="container py-4">
+<div class="mi-contenedor py-4">
   <header class="d-flex justify-content-between align-items-center mb-4 px-3 py-2">
-    <h1 class="fw-bold m-0 text-dark">Gestor de Tareas Pomodoro</h1>
+    <h1 class="fw-bold m-0 text-dark" id="btnTitulo">TaskSync, tu gestor de tareas</h1>
 
     <div class="d-flex gap-2 align-items-center">
       <a href="categorias.html" class="btn btn-outline-secondary d-flex align-items-center gap-1">
         <i class="bi bi-tags-fill"></i> Categorías
       </a>
 
-      <a href="perfil.html" class="btn btn-rosa-claro d-flex align-items-center gap-1" title="Perfil de usuario">
+      <a href="perfil.html" class="btn d-flex align-items-center gap-1" title="Perfil de usuario">
         <i class="bi bi-person-circle fs-5"></i> Perfil
       </a>
 
@@ -39,7 +39,7 @@
     <div class="row" id="tareasContainer"></div>
   </main>
 
-  <button class="btn btn-success mt-4" onclick="mostrarFormulario()" id="botonCrear">Crear nueva tarea</button>
+  <button class="btn mt-4" onclick="mostrarFormulario()" id="botonCrear">Crear nueva tarea</button>
 
   <!-- Formulario modal -->
   <dialog id="formularioTarea" class="p-4 rounded border shadow" style="max-width: 600px;">

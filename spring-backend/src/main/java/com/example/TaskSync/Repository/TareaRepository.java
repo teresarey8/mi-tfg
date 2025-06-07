@@ -12,8 +12,8 @@ import java.util.List;
 public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
     List<Tarea> findByUsuario(Usuario usuario);
-    List<Tarea> findByUsuarioAndCategoria(Usuario usuario, Categoria categoria);
     List<Tarea> findByTareaPadre(Tarea tareaPadre);
+    List<Tarea> findByTareaSiguiente(Tarea tarea);
 
 
 }

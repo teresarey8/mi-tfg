@@ -35,7 +35,7 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
         col.style.marginLeft = `${nivel * 30}px`; // Sangría visual
 
         col.innerHTML = `
-<div class="card mb-2" style="border-left: 5px solid ${obtenerColorCategoria(tarea.categoria?.id)};">
+<div class="card mb-2" data-tarea-id="${tarea.id}" style="border-left: 5px solid ${obtenerColorCategoria(tarea.categoria?.id)};">
   <div class="card-body p-2">
     <h4 class="fw-bold">${tarea.titulo}</h4>
     <p class="mb-1">${tarea.descripcion}</p>
@@ -69,6 +69,20 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
         // Mostrar subtareas recursivamente
         if (tarea.subtareas && tarea.subtareas.length > 0) {
             mostrarTareas(tarea.subtareas, contenedor, nivel + 1);
+        }
+    });
+}
+function marcarTareaCompletadaVisual(tareaId) {
+    // Busca el contenedor donde está la tarea por su ID (usa un data-attribute o similar)
+    const cards = document.querySelectorAll(".card");
+    cards.forEach(card => {
+        // Suponiendo que tienes el ID en un atributo data-tarea-id
+        if (card.dataset.tareaId == tareaId) {
+            card.style.opacity = "0.5";
+            const titulo = card.querySelector("h4");
+            if (titulo) {
+                titulo.style.textDecoration = "line-through";
+            }
         }
     });
 }
@@ -274,6 +288,12 @@ async function iniciarPomodoro(tarea) {
             if (tiempoRestanteSegundos <= 0) {
                 clearInterval(temporizadorInterval);
                 alert(`¡Pomodoro terminado para la tarea "${tarea.titulo}"!`);
+                marcarTareaCompletadaVisual(tarea.id);
+                const card = document.querySelector(`.card[data-tarea-id="${tarea.id}"]`);
+                if (card) {
+                    const btn = card.querySelector(".btn-pomodoro");
+                    if (btn) btn.disabled = true;
+                }
 
                 const resSiguiente = await fetch(`${API}/tareas/${tarea.id}/finalizar-y-empezar-siguiente`, {
                     method: "PUT",

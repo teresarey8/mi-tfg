@@ -4,7 +4,7 @@
   box-sizing: border-box;
 }
 body {
-  background-image: url("../image/fondo.jpg");
+  background: linear-gradient(to bottom, #f1b3b3, #b9a9e3);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   align-items: center;

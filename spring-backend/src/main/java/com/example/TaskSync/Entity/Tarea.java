@@ -66,9 +66,10 @@ public class Tarea {
 
     private boolean notificarAlTerminar = true;
 
-    @OneToMany(mappedBy = "tareaPadre", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "tareaPadre", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"tareaPadre", "tareaSiguiente"})
     private List<Tarea> subtareas;
+
 
 }
 

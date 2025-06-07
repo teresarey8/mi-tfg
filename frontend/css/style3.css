@@ -1,9 +1,9 @@
 /* Estilos generales */
 body {
-    background-image: url("../image/fondo.jpg");
-    background-color: #f8f9fa;
+    background: linear-gradient(to bottom, #f1b3b3, #b9a9e3);
     font-family: 'Segoe UI', sans-serif;
     padding-bottom: 2rem;
+    height: 100vh;
 }
 
 /* Encabezados */
@@ -16,10 +16,7 @@ h2 {
 /* Contenedor principal */
 .container {
     max-width: 1200px;
-    background-color: white;
     padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 2rem;
 }
 

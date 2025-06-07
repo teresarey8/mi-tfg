@@ -149,14 +149,34 @@ public class TareaController {
 
     @DeleteMapping("/tareas/{id}")
     public ResponseEntity<Void> deleteTarea(@PathVariable Long id) {
-        Optional<Tarea> tarea = tareaRepository.findById(id);
-        if (tarea.isPresent()) {
-            tareaRepository.delete(tarea.get());
+        Optional<Tarea> tareaOpt = tareaRepository.findById(id);
+        if (tareaOpt.isPresent()) {
+            Tarea tarea = tareaOpt.get();
+
+            // Si esta tarea es tareaSiguiente de otra, limpiar esa referencia
+            List<Tarea> tareasPadres = tareaRepository.findByTareaSiguiente(tarea);
+            for (Tarea padre : tareasPadres) {
+                padre.setTareaSiguiente(null);
+                tareaRepository.save(padre);
+            }
+
+            // Si esta tarea tiene tareaPadre, limpiar la referencia de su padre
+            if (tarea.getTareaPadre() != null) {
+                Tarea padre = tarea.getTareaPadre();
+                padre.getSubtareas().remove(tarea);
+                tarea.setTareaPadre(null);
+                tareaRepository.save(padre);
+            }
+
+            // Borrar la tarea
+            tareaRepository.delete(tarea);
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();
         }
     }
+
+
 
 
     @GetMapping("/tareas/{id}/subtareas")
