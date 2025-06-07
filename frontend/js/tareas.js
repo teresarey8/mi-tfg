@@ -12,11 +12,9 @@ let tiempoRestanteSegundos = 0;
 let tareaActual = null;
 
 
-
-
 async function obtenerTareas() {
     const res = await fetch(`${API}/tareas`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {Authorization: `Bearer ${token}`}
     });
     const tareas = await res.json();
 
@@ -28,8 +26,6 @@ async function obtenerTareas() {
 }
 
 
-
-
 function mostrarTareas(tareas, contenedor = document.getElementById("tareasContainer"), nivel = 0) {
     if (nivel === 0) contenedor.innerHTML = ""; // Limpia solo al principio
 
@@ -39,21 +35,22 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
         col.style.marginLeft = `${nivel * 30}px`; // Sangría visual
 
         col.innerHTML = `
-      <div class="card mb-2" style="border-left: 5px solid ${nivel === 0 ? '#007bff' : '#28a745'};">
-        <div class="card-body p-2">
-          <h6>${tarea.titulo}</h6>
-          <p class="mb-1">${tarea.descripcion}</p>
-          <p class="mb-1"><strong>Inicio:</strong> ${tarea.horaInicio?.replace("T", " ").slice(0, 16)}</p>
-          <p class="mb-1"><strong>Duración:</strong> ${tarea.duracionMinutos} min</p>
-          <p class="mb-1"><strong>Tipo:</strong> ${tarea.tipo}</p>
-          <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-sm btn-primary btn-pomodoro">Iniciar Tarea</button>
-            <button class="btn btn-sm btn-secondary btn-subtarea">Crear subtarea</button>
-            <button class="btn btn-sm btn-warning" onclick="editarTarea(${tarea.id})">Editar</button>
-            <button class="btn btn-sm btn-danger" onclick="borrarTarea(${tarea.id})">Borrar</button>
-          </div>
-        </div>
-      </div>
+<div class="card mb-2" style="border-left: 5px solid ${obtenerColorCategoria(tarea.categoria?.id)};">
+  <div class="card-body p-2">
+    <h4 class="fw-bold">${tarea.titulo}</h4>
+    <p class="mb-1">${tarea.descripcion}</p>
+    <p class="mb-1"><strong>Inicio:</strong> ${tarea.horaInicio?.replace("T", " ").slice(0, 16)}</p>
+    <p class="mb-1"><strong>Duración:</strong> ${tarea.duracionMinutos} min</p>
+    <p class="mb-1"><strong>Tipo:</strong> ${tarea.tipo}</p>
+    <div class="d-flex gap-2 flex-wrap">
+      <button class="btn btn-sm btn-primary btn-pomodoro">Iniciar Tarea</button>
+      <button class="btn btn-sm btn-secondary btn-subtarea">Crear subtarea</button>
+      <button class="btn btn-sm btn-warning" onclick="editarTarea(${tarea.id})">Editar</button>
+      <button class="btn btn-sm btn-danger" onclick="borrarTarea(${tarea.id})">Borrar</button>
+    </div>
+  </div>
+</div>
+
     `;
 
         contenedor.appendChild(col);
@@ -75,13 +72,19 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
         }
     });
 }
+
+
+let categoriasGlobal = [];
+
 async function cargarCategorias() {
     try {
         const res = await fetch(`${API}/categorias`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: {Authorization: `Bearer ${token}`}
         });
         if (!res.ok) throw new Error("Error al cargar categorías");
         const categorias = await res.json();
+
+        categoriasGlobal = categorias;
 
         const select = document.getElementById("categoria_id");
 
@@ -94,6 +97,12 @@ async function cargarCategorias() {
         alert("No se pudieron cargar las categorías");
     }
 }
+function obtenerColorCategoria(idCategoria) {if (!idCategoria) return "#fd3cfa"; // color rosa si no hay categoría
+    const categoria = categoriasGlobal.find(cat => cat.id == idCategoria);
+    return categoria?.color || "#fd3cfa";
+}
+
+
 
 
 function mostrarFormulario() {
@@ -173,7 +182,7 @@ async function crearTarea() {
 async function actualizarTareaPadre(tareaPadreId, tareaSiguienteId) {
     try {
         const resPadre = await fetch(`${API}/tareas/${tareaPadreId}`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: {Authorization: `Bearer ${token}`}
         });
         if (!resPadre.ok) throw new Error("Error al obtener la tarea padre");
 
@@ -185,7 +194,7 @@ async function actualizarTareaPadre(tareaPadreId, tareaSiguienteId) {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({ ...tareaPadre, tareaSiguienteId })
+            body: JSON.stringify({...tareaPadre, tareaSiguienteId})
         });
 
         if (!resActualiza.ok) throw new Error("Error al actualizar la tarea padre");
@@ -197,7 +206,7 @@ async function actualizarTareaPadre(tareaPadreId, tareaSiguienteId) {
 async function editarTarea(id) {
     try {
         const res = await fetch(`${API}/tareas/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: {Authorization: `Bearer ${token}`}
         });
         if (!res.ok) throw new Error("Error al obtener tarea para editar");
         const tarea = await res.json();
@@ -225,7 +234,7 @@ async function borrarTarea(id) {
     try {
         const res = await fetch(`${API}/tareas/${id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` }
+            headers: {Authorization: `Bearer ${token}`}
         });
         if (!res.ok) throw new Error("Error al borrar la tarea");
         obtenerTareas();
@@ -247,7 +256,7 @@ async function iniciarPomodoro(tarea) {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({ ...tarea, horaInicio: ahoraISO })
+            body: JSON.stringify({...tarea, horaInicio: ahoraISO})
         });
 
         if (!res.ok) throw new Error("Error al actualizar hora de inicio");
@@ -268,7 +277,7 @@ async function iniciarPomodoro(tarea) {
 
                 const resSiguiente = await fetch(`${API}/tareas/${tarea.id}/finalizar-y-empezar-siguiente`, {
                     method: "PUT",
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: {Authorization: `Bearer ${token}`}
                 });
 
                 if (resSiguiente.ok) {

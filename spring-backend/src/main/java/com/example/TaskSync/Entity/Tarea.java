@@ -51,7 +51,6 @@ public class Tarea {
 
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JsonIgnore
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
