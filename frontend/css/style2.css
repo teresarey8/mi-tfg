@@ -109,6 +109,25 @@ button.btn-danger {
 button.btn-danger:hover {
   background-color: #a71d2a;
 }
+#botonCrear {
+  background-color: #ea92d8;
+  border: none;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 12px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#botonCrear:hover {
+  background-color: #da6eb6;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgb(218, 110, 182);
+}
+
+#botonCrear:active {
+  transform: scale(0.98);
+  box-shadow: 0 3px 6px rgb(253, 60, 250);
+}
 
 /* Efecto hover en tareas */
 .tarea-item:hover {
