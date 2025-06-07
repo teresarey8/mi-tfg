@@ -158,28 +158,6 @@ public class TareaController {
         }
     }
 
-    @GetMapping("/tareas/categoria/{categoriaId}")
-    public ResponseEntity<List<Tarea>> getTareasPorCategoria(
-            @PathVariable Long categoriaId,
-            Authentication authentication) {
-
-        if (authentication == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        Usuario user = usuarioRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        Categoria categoria = categoriaRepository.findById(categoriaId)
-                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
-
-        if (!categoria.getUsuario().equals(user)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        List<Tarea> tareas = tareaRepository.findByUsuarioAndCategoria(user, categoria);
-        return ResponseEntity.ok(tareas);
-    }
 
     @GetMapping("/tareas/{id}/subtareas")
     public ResponseEntity<List<Tarea>> obtenerSubtareas(@PathVariable Long id) {

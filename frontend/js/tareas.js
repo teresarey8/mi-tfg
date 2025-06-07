@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     await cargarCategorias();
     await obtenerTareas();
     document.body.classList.remove("hidden");
-    document.getElementById("filtroCategoria").addEventListener("change", filtrarPorCategoria);
 });
 
 let temporizadorInterval = null;
@@ -48,7 +47,7 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
           <p class="mb-1"><strong>Duración:</strong> ${tarea.duracionMinutos} min</p>
           <p class="mb-1"><strong>Tipo:</strong> ${tarea.tipo}</p>
           <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-sm btn-primary btn-pomodoro">Pomodoro</button>
+            <button class="btn btn-sm btn-primary btn-pomodoro">Iniciar Tarea</button>
             <button class="btn btn-sm btn-secondary btn-subtarea">Crear subtarea</button>
             <button class="btn btn-sm btn-warning" onclick="editarTarea(${tarea.id})">Editar</button>
             <button class="btn btn-sm btn-danger" onclick="borrarTarea(${tarea.id})">Borrar</button>
@@ -76,26 +75,6 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
         }
     });
 }
-
-async function cargarCategorias() {
-    const res = await fetch(`${API}/categorias`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    const categorias = await res.json();
-    const select = document.getElementById("categoria_id");
-    const filtro = document.getElementById("filtroCategoria");
-
-    select.innerHTML = filtro.innerHTML = `<option value="">Todas</option>`;
-    categorias.forEach(cat => {
-        const opt1 = new Option(cat.nombre, cat.id);
-        const opt2 = new Option(cat.nombre, cat.id);
-        select.add(opt1);
-        filtro.add(opt2);
-    });
-}
-
-
-
 async function cargarCategorias() {
     try {
         const res = await fetch(`${API}/categorias`, {
@@ -105,18 +84,17 @@ async function cargarCategorias() {
         const categorias = await res.json();
 
         const select = document.getElementById("categoria_id");
-        const filtro = document.getElementById("filtroCategoria");
 
-        select.innerHTML = filtro.innerHTML = `<option value="">Todas</option>`;
+        select.innerHTML = `<option value="">Todas</option>`;
         categorias.forEach(cat => {
             select.add(new Option(cat.nombre, cat.id));
-            filtro.add(new Option(cat.nombre, cat.id));
         });
     } catch (error) {
         console.error(error);
         alert("No se pudieron cargar las categorías");
     }
 }
+
 
 function mostrarFormulario() {
     limpiarFormulario();
@@ -255,15 +233,6 @@ async function borrarTarea(id) {
         console.error(error);
         alert(error.message);
     }
-}
-
-function filtrarPorCategoria() {
-    const filtro = document.getElementById("filtroCategoria").value;
-    fetch(`${API}/tareas?categoriaId=${filtro}`, {
-        headers: { Authorization: `Bearer ${token}` }
-    })
-        .then(res => res.json())
-        .then(tareas => mostrarTareas(tareas));
 }
 
 async function iniciarPomodoro(tarea) {
