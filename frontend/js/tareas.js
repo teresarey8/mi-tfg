@@ -1,9 +1,10 @@
 const API = "http://localhost:8081";
 const token = localStorage.getItem("token");
 
-document.addEventListener("DOMContentLoaded", () => {
-    cargarCategorias();
-    obtenerTareas();
+document.addEventListener("DOMContentLoaded", async () => {
+    await cargarCategorias();
+    await obtenerTareas();
+    document.body.classList.remove("hidden");
     document.getElementById("filtroCategoria").addEventListener("change", filtrarPorCategoria);
 });
 
@@ -11,83 +12,61 @@ let temporizadorInterval = null;
 let tiempoRestanteSegundos = 0;
 let tareaActual = null;
 
-function construirArbolTareas(tareas) {
-    const mapaTareas = {};
-    tareas.forEach(t => (mapaTareas[t.id] = { ...t, subtareas: [] }));
-
-    const tareasRaiz = [];
-    tareas.forEach(t => {
-        if (t.tareaPadreId) {
-            mapaTareas[t.tareaPadreId]?.subtareas.push(mapaTareas[t.id]);
-        } else {
-            tareasRaiz.push(mapaTareas[t.id]);
-        }
-    });
-
-    return tareasRaiz;
-}
 
 async function obtenerTareas() {
-    try {
-        const res = await fetch(`${API}/tareas`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error("Error al cargar tareas");
-        const tareas = await res.json();
-        const tareasArbol = construirArbolTareas(tareas);
-        mostrarTareas(tareasArbol);
-        resetTemporizador();
-    } catch (error) {
-        console.error(error);
-        alert("No se pudieron cargar las tareas");
-    }
+    const res = await fetch(`${API}/tareas`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    const tareas = await res.json();
+
+    // Filtra solo tareas raíz (sin padre)
+    const tareasRaiz = tareas.filter(t => t.tareaPadre === null);
+
+    mostrarTareas(tareasRaiz);
+    resetTemporizador();
 }
 
+
+
+
 function mostrarTareas(tareas, contenedor = document.getElementById("tareasContainer"), nivel = 0) {
-    if (nivel === 0) {
-        contenedor.innerHTML = "";
-    }
+    if (nivel === 0) contenedor.innerHTML = ""; // Limpia solo al principio
 
     tareas.forEach(tarea => {
-        const tareaWrapper = document.createElement("div");
-        tareaWrapper.className = `tarea-nivel-${nivel}`;
-        tareaWrapper.style.marginLeft = `${nivel * 30}px`;
+        const col = document.createElement("div");
+        col.className = "col-md-12"; // Usa ancho completo para subtareas
+        col.style.marginLeft = `${nivel * 30}px`; // Sangría visual
 
-        const card = document.createElement("div");
-        card.className = `card tarea nivel-${nivel} ${nivel > 0 ? 'subtarea' : ''}`;
+        col.innerHTML = `
+      <div class="card mb-2" style="border-left: 5px solid ${nivel === 0 ? '#007bff' : '#28a745'};">
+        <div class="card-body p-2">
+          <h6>${tarea.titulo}</h6>
+          <p class="mb-1">${tarea.descripcion}</p>
+          <p class="mb-1"><strong>Inicio:</strong> ${tarea.horaInicio?.replace("T", " ").slice(0, 16)}</p>
+          <p class="mb-1"><strong>Duración:</strong> ${tarea.duracionMinutos} min</p>
+          <p class="mb-1"><strong>Tipo:</strong> ${tarea.tipo}</p>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-sm btn-primary btn-pomodoro">Pomodoro</button>
+            <button class="btn btn-sm btn-secondary btn-subtarea">Crear subtarea</button>
+            <button class="btn btn-sm btn-warning" onclick="editarTarea(${tarea.id})">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="borrarTarea(${tarea.id})">Borrar</button>
+          </div>
+        </div>
+      </div>
+    `;
 
-        card.innerHTML = `
-            <div class="card-body">
-                <h6 class="mb-1 d-flex align-items-center">
-                    ${tarea.titulo}
-                    ${nivel > 0 ? '<span class="etiqueta-subtarea">Subtarea</span>' : ''}
-                </h6>
-                <p class="mb-1">${tarea.descripcion || ""}</p>
-                <p class="mb-1"><strong>Inicio:</strong> ${tarea.horaInicio ? tarea.horaInicio.replace("T", " ").slice(0, 16) : 'No programada'}</p>
-                <p class="mb-1"><strong>Duración:</strong> ${tarea.duracionMinutos} min</p>
-                <p class="mb-1"><strong>Tipo:</strong> ${tarea.tipo}</p>
-                <div class="d-flex gap-2 flex-wrap mt-2">
-                    <button class="btn btn-sm btn-primary btn-pomodoro">Pomodoro</button>
-                    ${nivel < 2 ? '<button class="btn btn-sm btn-secondary btn-subtarea">Crear subtarea</button>' : ''}
-                    <button class="btn btn-sm btn-warning btn-editar">Editar</button>
-                    <button class="btn btn-sm btn-danger btn-borrar">Borrar</button>
-                </div>
-            </div>
-        `;
+        contenedor.appendChild(col);
 
-        // Event listeners (manteniendo tu implementación original)
-        card.querySelector(".btn-pomodoro").addEventListener("click", () => iniciarPomodoro(tarea));
-        if (nivel < 2) {
-            card.querySelector(".btn-subtarea")?.addEventListener("click", () => {
-                mostrarFormulario();
-                prepararFormularioSubtarea(tarea.id);
-            });
-        }
-        card.querySelector(".btn-editar").addEventListener("click", () => editarTarea(tarea.id));
-        card.querySelector(".btn-borrar").addEventListener("click", () => borrarTarea(tarea.id));
+        // Botón Pomodoro
+        const btnPomodoro = col.querySelector(".btn-pomodoro");
+        btnPomodoro.addEventListener("click", () => iniciarPomodoro(tarea));
 
-        tareaWrapper.appendChild(card);
-        contenedor.appendChild(tareaWrapper);
+        // Botón crear subtarea
+        const btnSubtarea = col.querySelector(".btn-subtarea");
+        btnSubtarea.addEventListener("click", () => {
+            mostrarFormulario();
+            prepararFormularioSubtarea(tarea.id);
+        });
 
         // Mostrar subtareas recursivamente
         if (tarea.subtareas && tarea.subtareas.length > 0) {
@@ -95,6 +74,25 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
         }
     });
 }
+
+async function cargarCategorias() {
+    const res = await fetch(`${API}/categorias`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    const categorias = await res.json();
+    const select = document.getElementById("categoria_id");
+    const filtro = document.getElementById("filtroCategoria");
+
+    select.innerHTML = filtro.innerHTML = `<option value="">Todas</option>`;
+    categorias.forEach(cat => {
+        const opt1 = new Option(cat.nombre, cat.id);
+        const opt2 = new Option(cat.nombre, cat.id);
+        select.add(opt1);
+        filtro.add(opt2);
+    });
+}
+
+
 
 async function cargarCategorias() {
     try {
