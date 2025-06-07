@@ -13,6 +13,8 @@ let tiempoRestanteSegundos = 0;
 let tareaActual = null;
 
 
+
+
 async function obtenerTareas() {
     const res = await fetch(`${API}/tareas`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -133,7 +135,7 @@ function limpiarFormulario() {
     document.getElementById("tareaIdEdit").value = "";
     document.getElementById("titulo").value = "";
     document.getElementById("descripcion").value = "";
-    document.getElementById("duracion").value = "25";
+    document.getElementById("duracion").value = "00";
     document.getElementById("tipo").value = "trabajo";
     document.getElementById("horaInicio").value = "";
     document.getElementById("categoria_id").value = "";
@@ -257,18 +259,11 @@ async function borrarTarea(id) {
 
 function filtrarPorCategoria() {
     const filtro = document.getElementById("filtroCategoria").value;
-    fetch(`${API}/tareas${filtro ? `?categoriaId=${filtro}` : ""}`, {
+    fetch(`${API}/tareas?categoriaId=${filtro}`, {
         headers: { Authorization: `Bearer ${token}` }
     })
         .then(res => res.json())
-        .then(tareas => {
-            const arbol = construirArbolTareas(tareas);
-            mostrarTareas(arbol);
-        })
-        .catch(error => {
-            console.error(error);
-            alert("Error al filtrar tareas");
-        });
+        .then(tareas => mostrarTareas(tareas));
 }
 
 async function iniciarPomodoro(tarea) {
@@ -330,7 +325,7 @@ function actualizarTemporizadorUI() {
 
 function resetTemporizador() {
     if (temporizadorInterval) clearInterval(temporizadorInterval);
-    document.getElementById("temporizador").textContent = "25:00";
+    document.getElementById("temporizador").textContent = "00:00";
 }
 
 function logout() {
