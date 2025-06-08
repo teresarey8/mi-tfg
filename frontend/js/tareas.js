@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     await cargarCategorias();
     await obtenerTareas();
     document.body.classList.remove("hidden");
+
+
 });
 
 let temporizadorInterval = null;
@@ -35,7 +37,7 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
         col.style.marginLeft = `${nivel * 30}px`; // Sangría visual
 
         col.innerHTML = `
-<div class="card mb-2" data-tarea-id="${tarea.id}" style="border-left: 5px solid ${obtenerColorCategoria(tarea.categoria?.id)};">
+<div class="card  tarea-item mb-2" data-tarea-id="${tarea.id}" style="border-left: 5px solid ${obtenerColorCategoria(tarea.categoria?.id)};">
   <div class="card-body p-2">
     <h4 class="fw-bold">${tarea.titulo}</h4>
     <p class="mb-1">${tarea.descripcion}</p>
