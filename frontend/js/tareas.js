@@ -86,6 +86,47 @@ function marcarTareaCompletadaVisual(tareaId) {
     });
 }
 
+function marcarTareaEnProgresoVisual(tareaId) {
+    const cards = document.querySelectorAll(".card");
+    cards.forEach(card => {
+        if (card.dataset.tareaId == tareaId) {
+            card.style.border = "2px solid orange";
+            card.style.backgroundColor = "#f1e69c";
+
+            // Asegurarse de que no esté tachado
+            const titulo = card.querySelector("h4");
+            if (titulo) {
+                titulo.style.textDecoration = "none";
+                titulo.style.fontWeight = "bold";
+            }
+
+            // Añadir etiqueta "En progreso" si no existe
+            if (!card.querySelector(".estado-en-progreso")) {
+                const estado = document.createElement("div");
+                estado.classList.add("estado-en-progreso");
+                estado.textContent = "⏳ En progreso";
+                estado.style.color = "orange";
+                estado.style.fontSize = "1em";
+                estado.style.marginTop = "5px";
+                card.appendChild(estado);
+            }
+        }
+    });
+}
+function quitarMarcaEnProgreso(tareaId) {
+    const cards = document.querySelectorAll(".card");
+    cards.forEach(card => {
+        if (card.dataset.tareaId == tareaId) {
+            card.style.border = "";
+            card.style.backgroundColor = "";
+
+            const estado = card.querySelector(".estado-en-progreso");
+            if (estado) estado.remove();
+        }
+    });
+}
+
+
 
 let categoriasGlobal = [];
 
@@ -273,7 +314,10 @@ async function iniciarPomodoro(tarea) {
         tareaActual = tarea;
         tiempoRestanteSegundos = tarea.duracionMinutos * 60;
 
+        marcarTareaEnProgresoVisual(tarea.id);
+
         actualizarTemporizadorUI();
+
 
         temporizadorInterval = setInterval(async () => {
             tiempoRestanteSegundos--;
@@ -282,7 +326,9 @@ async function iniciarPomodoro(tarea) {
             if (tiempoRestanteSegundos <= 0) {
                 clearInterval(temporizadorInterval);
                 alert(`¡Pomodoro terminado para la tarea "${tarea.titulo}"!`);
+                quitarMarcaEnProgreso(tarea.id);
                 marcarTareaCompletadaVisual(tarea.id);
+
                 const card = document.querySelector(`.card[data-tarea-id="${tarea.id}"]`);
                 if (card) {
                     const btn = card.querySelector(".btn-pomodoro");
@@ -291,13 +337,16 @@ async function iniciarPomodoro(tarea) {
 
                 const resSiguiente = await fetch(`${API}/tareas/${tarea.id}/finalizar-y-empezar-siguiente`, {
                     method: "PUT",
-                    headers: {Authorization: `Bearer ${token}`}
+                    headers: { Authorization: `Bearer ${token}` }
                 });
 
                 if (resSiguiente.ok) {
                     const tareaSiguiente = await resSiguiente.json();
-                    if (tareaSiguiente) iniciarPomodoro(tareaSiguiente);
-                    else alert("No hay tarea siguiente para comenzar.");
+                    if (tareaSiguiente) {
+                        iniciarPomodoro(tareaSiguiente);
+                    } else {
+                        alert("No hay tarea siguiente para comenzar.");
+                    }
                 } else if (resSiguiente.status !== 204) {
                     alert("Error al obtener la tarea siguiente");
                 }
