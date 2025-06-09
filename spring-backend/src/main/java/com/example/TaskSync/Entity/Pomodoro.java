@@ -8,13 +8,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class Pomodoro {
 
     @Id
@@ -22,11 +21,10 @@ public class Pomodoro {
     private Long id;
 
     private Long tareaId;
+    //para el problema de la zona horaria y tal
+    private OffsetDateTime inicio;
 
-    private LocalDateTime inicio;
-
-    private LocalDateTime fin;
+    private OffsetDateTime fin;
 
     private boolean completado;
-
 }
