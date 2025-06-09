@@ -33,7 +33,7 @@ public class Tarea {
     @NotBlank(message = "La descripción es obligatoria")
     private String descripcion;
 
-    @NotBlank(message = "La duración es obligatoria")
+    @NotNull
     private int duracionMinutos; // duración en minutos
 
     @Column(nullable = false)
