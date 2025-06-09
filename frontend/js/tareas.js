@@ -82,7 +82,7 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
 }
 
 function marcarTareaCompletadaVisual(tareaId) {
-    // Busca el contenedor donde está la tarea por su ID (usa un data-attribute o similar)
+    // Busca el contenedor donde está la tarea por su ID
     const cards = document.querySelectorAll(".card");
     cards.forEach(card => {
         // Suponiendo que tienes el ID en un atributo data-tarea-id
@@ -123,6 +123,7 @@ function marcarTareaEnProgresoVisual(tareaId) {
         }
     });
 }
+
 function quitarMarcaEnProgreso(tareaId) {
     const cards = document.querySelectorAll(".card");
     cards.forEach(card => {
@@ -135,7 +136,6 @@ function quitarMarcaEnProgreso(tareaId) {
         }
     });
 }
-
 
 
 let categoriasGlobal = [];
@@ -161,12 +161,12 @@ async function cargarCategorias() {
         alert("No se pudieron cargar las categorías");
     }
 }
-function obtenerColorCategoria(idCategoria) {if (!idCategoria) return "#fd3cfa"; // color rosa si no hay categoría
+
+function obtenerColorCategoria(idCategoria) {
+    if (!idCategoria) return "#fd3cfa"; // color rosa si no hay categoría
     const categoria = categoriasGlobal.find(cat => cat.id == idCategoria);
     return categoria?.color || "#fd3cfa";
 }
-
-
 
 
 function mostrarFormulario() {
@@ -225,7 +225,12 @@ async function crearTarea() {
             body: JSON.stringify(dto)
         });
 
-        if (!res.ok) throw new Error("Error al crear/editar la tarea");
+        // Manejo detallado de errores del backend
+        if (!res.ok) {
+            const errorData = await res.json();
+            const mensaje = errorData?.mensaje || errorData?.error || "Error al crear/editar la tarea";
+            throw new Error(mensaje);
+        }
 
         const tareaCreada = await res.json();
 
@@ -237,7 +242,7 @@ async function crearTarea() {
         obtenerTareas();
     } catch (error) {
         console.error(error);
-        alert(error.message);
+        alert("⚠️ " + error.message);
     }
 }
 
@@ -347,13 +352,13 @@ async function iniciarPomodoro(tarea) {
                 // Marcar Pomodoro completado en backend
                 await fetch(`${API}/pomodoros/${pomodoroIdActual}/complete`, {
                     method: "PUT",
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: {Authorization: `Bearer ${token}`}
                 });
 
                 // Continuar con la siguiente tarea encadenada
                 const resSiguiente = await fetch(`${API}/tareas/${tarea.id}/finalizar-y-empezar-siguiente`, {
                     method: "PUT",
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: {Authorization: `Bearer ${token}`}
                 });
 
                 if (resSiguiente.ok) {

@@ -33,7 +33,8 @@ public class Tarea {
     @NotBlank(message = "La descripción es obligatoria")
     private String descripcion;
 
-    private int duracionMinutos; // duración en minutos (pomodoro típico = 25)
+    @NotBlank(message = "La duración es obligatoria")
+    private int duracionMinutos; // duración en minutos
 
     @Column(nullable = false)
     private Boolean completada = false;

@@ -7,13 +7,13 @@ import com.example.TaskSync.Entity.Usuario;
 import com.example.TaskSync.Repository.CategoriaRepository;
 import com.example.TaskSync.Repository.TareaRepository;
 import com.example.TaskSync.Repository.UsuarioRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,7 +45,7 @@ public class TareaController {
     }
 
     @PostMapping("/tareas")
-    public ResponseEntity<?> crearTarea(@RequestBody crearTareaDTO dto, Authentication authentication) {
+    public ResponseEntity<?> crearTarea(@Valid @RequestBody crearTareaDTO dto, Authentication authentication) {
         String username = authentication.getName();
         Usuario usuario = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -87,6 +87,7 @@ public class TareaController {
 
     @PutMapping("/tareas/{id}")
     public ResponseEntity<Tarea> actualizarTarea(
+            @Valid
             @PathVariable Long id,
             @RequestBody crearTareaDTO dto,
             Authentication authentication) {
@@ -167,8 +168,6 @@ public class TareaController {
     }
 
 
-
-
     @GetMapping("/tareas/{id}/subtareas")
     public ResponseEntity<List<Tarea>> obtenerSubtareas(@PathVariable Long id) {
         Optional<Tarea> tareaPadre = tareaRepository.findById(id);
@@ -242,7 +241,6 @@ public class TareaController {
             return ResponseEntity.noContent().build();
         }
     }
-
 
 
 }

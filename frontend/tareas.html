@@ -1,97 +1,97 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/png" href="./img/logo.png">
-  <title>TaskSync</title>
-  <link rel="stylesheet" href="css/style2.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
-  <script src="js/tareas.js" defer></script>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" type="image/png" href="./img/logo.png">
+    <title>TaskSync</title>
+    <link rel="stylesheet" href="css/style2.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
+    <script src="js/tareas.js" defer></script>
 </head>
 <body class="bg-light">
 <div class="mi-contenedor py-4">
-  <header class="d-flex justify-content-between align-items-center mb-4 px-3 py-2">
-    <div class="text-center mb-3">
-      <img src="./img/logo.png" alt="TaskSync Logo" style="max-width: 150px; height: auto;">
+    <header class="d-flex justify-content-between align-items-center mb-4 px-3 py-2">
+        <div class="text-center mb-3">
+            <img src="./img/logo.png" alt="TaskSync Logo" style="max-width: 150px; height: auto;">
+        </div>
+
+        <div class="d-flex gap-2 align-items-center">
+            <a href="categorias.html" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+                <i class="bi bi-tags-fill"></i> Categorías
+            </a>
+
+
+            <a href="perfil.html" class="btn d-flex align-items-center gap-1" title="Perfil de usuario">
+                <i class="bi bi-person-circle fs-5"></i> Perfil
+            </a>
+
+            <button class="btn btn-danger d-flex align-items-center gap-1" onclick="logout()">
+                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+            </button>
+        </div>
+    </header>
+
+    <!-- Temporizador Pomodoro -->
+    <div id="temporizadorContainer">
+        <div id="temporizador">00:00</div>
     </div>
 
-    <div class="d-flex gap-2 align-items-center">
-      <a href="categorias.html" class="btn btn-outline-secondary d-flex align-items-center gap-1">
-        <i class="bi bi-tags-fill"></i> Categorías
-      </a>
+    <main>
+        <!-- Aquí se cargan las tareas con su botón Pomodoro -->
+        <div class="row" id="tareasContainer"></div>
+    </main>
+
+    <button class="btn mt-4" onclick="mostrarFormulario()" id="botonCrear">Crear nueva tarea</button>
+
+    <!-- Formulario modal -->
+    <dialog id="formularioTarea" class="p-4 rounded border shadow" style="max-width: 600px;">
+        <h4 id="tituloFormulario">Nueva Tarea</h4>
+
+        <input type="hidden" id="tareaIdEdit"/>
+
+        <input type="hidden" id="tareaPadreId"/>
 
 
-      <a href="perfil.html" class="btn d-flex align-items-center gap-1" title="Perfil de usuario">
-        <i class="bi bi-person-circle fs-5"></i> Perfil
-      </a>
+        <div class="mb-2">
+            <label for="titulo" class="form-label">Título</label>
+            <input type="text" id="titulo" class="form-control" placeholder="Título"/>
+        </div>
 
-      <button class="btn btn-danger d-flex align-items-center gap-1" onclick="logout()">
-        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
-      </button>
-    </div>
-  </header>
+        <div class="mb-2">
+            <label for="descripcion" class="form-label">Descripción</label>
+            <textarea id="descripcion" class="form-control" placeholder="Descripción"></textarea>
+        </div>
 
-  <!-- Temporizador Pomodoro -->
-  <div id="temporizadorContainer">
-    <div id="temporizador">00:00</div>
-  </div>
+        <div class="mb-2">
+            <label for="duracion" class="form-label">Duración (minutos)</label>
+            <input type="number" id="duracion" class="form-control" placeholder="Duración en minutos" value="00"/>
+        </div>
 
-  <main>
-    <!-- Aquí se cargan las tareas con su botón Pomodoro -->
-    <div class="row" id="tareasContainer"></div>
-  </main>
+        <div class="mb-2">
+            <label for="tipo" class="form-label">Tipo de tarea</label>
+            <select id="tipo" class="form-select">
+                <option value="trabajo">Trabajo</option>
+                <option value="descanso">Descanso</option>
+            </select>
+        </div>
 
-  <button class="btn mt-4" onclick="mostrarFormulario()" id="botonCrear">Crear nueva tarea</button>
+        <div class="mb-2">
+            <label for="categoria_id" class="form-label">Categoría</label>
+            <select id="categoria_id" class="form-select"></select>
+        </div>
 
-  <!-- Formulario modal -->
-  <dialog id="formularioTarea" class="p-4 rounded border shadow" style="max-width: 600px;">
-    <h4 id="tituloFormulario">Nueva Tarea</h4>
+        <div class="form-check mb-3">
+            <input type="checkbox" id="notificar" class="form-check-input" checked/>
+            <label class="form-check-label" for="notificar">Notificar al terminar</label>
+        </div>
 
-    <input type="hidden" id="tareaIdEdit" />
-
-    <input type="hidden" id="tareaPadreId" />
-
-
-    <div class="mb-2">
-      <label for="titulo" class="form-label">Título</label>
-      <input type="text" id="titulo" class="form-control" placeholder="Título" />
-    </div>
-
-    <div class="mb-2">
-      <label for="descripcion" class="form-label">Descripción</label>
-      <textarea id="descripcion" class="form-control" placeholder="Descripción"></textarea>
-    </div>
-
-    <div class="mb-2">
-      <label for="duracion" class="form-label">Duración (minutos)</label>
-      <input type="number" id="duracion" class="form-control" placeholder="Duración en minutos" value="00" />
-    </div>
-
-    <div class="mb-2">
-      <label for="tipo" class="form-label">Tipo de tarea</label>
-      <select id="tipo" class="form-select">
-        <option value="trabajo">Trabajo</option>
-        <option value="descanso">Descanso</option>
-      </select>
-    </div>
-
-    <div class="mb-2">
-      <label for="categoria_id" class="form-label">Categoría</label>
-      <select id="categoria_id" class="form-select"></select>
-    </div>
-
-    <div class="form-check mb-3">
-      <input type="checkbox" id="notificar" class="form-check-input" checked />
-      <label class="form-check-label" for="notificar">Notificar al terminar</label>
-    </div>
-
-    <div class="d-flex justify-content-end gap-2">
-      <button class="btn btn-secondary" onclick="cerrarFormulario()">Cancelar</button>
-      <button class="btn btn-primary" onclick="crearTarea()">Guardar</button>
-    </div>
-  </dialog>
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-secondary" onclick="cerrarFormulario()">Cancelar</button>
+            <button class="btn btn-primary" onclick="crearTarea()">Guardar</button>
+        </div>
+    </dialog>
 </div>
 </body>
 </html>
