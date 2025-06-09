@@ -37,7 +37,7 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
         col.style.marginLeft = `${nivel * 30}px`; // Sangría visual
 
         col.innerHTML = `
-<div class="card  tarea-item mb-2" data-tarea-id="${tarea.id}" style="border-left: 5px solid ${obtenerColorCategoria(tarea.categoria?.id)};">
+<div class="card tarea-item mb-2" data-tarea-id="${tarea.id}" style="border-left: 5px solid ${obtenerColorCategoria(tarea.categoria?.id)};">
   <div class="card-body p-2">
     <h4 class="fw-bold">${tarea.titulo}</h4>
     <p class="mb-1">${tarea.descripcion}</p>
@@ -51,10 +51,17 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
     </div>
   </div>
 </div>
-
-    `;
+        `;
 
         contenedor.appendChild(col);
+
+        // Marcar visualmente si está completada
+        if (tarea.completada) {
+            marcarTareaCompletadaVisual(tarea.id);
+            // Deshabilitar botón Pomodoro
+            const btnPomodoro = col.querySelector(".btn-pomodoro");
+            if (btnPomodoro) btnPomodoro.disabled = true;
+        }
 
         // Botón Pomodoro
         const btnPomodoro = col.querySelector(".btn-pomodoro");
@@ -73,6 +80,7 @@ function mostrarTareas(tareas, contenedor = document.getElementById("tareasConta
         }
     });
 }
+
 function marcarTareaCompletadaVisual(tareaId) {
     // Busca el contenedor donde está la tarea por su ID (usa un data-attribute o similar)
     const cards = document.querySelectorAll(".card");
@@ -300,26 +308,25 @@ async function borrarTarea(id) {
 async function iniciarPomodoro(tarea) {
     if (temporizadorInterval) clearInterval(temporizadorInterval);
 
-    const ahoraISO = new Date().toISOString().slice(0, 16);
-
     try {
-        const res = await fetch(`${API}/tareas/${tarea.id}`, {
-            method: "PUT",
+        // Crear Pomodoro en backend
+        const resPomodoro = await fetch(`${API}/pomodoros/${tarea.id}`, {
+            method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({...tarea})
+            }
         });
 
+        if (!resPomodoro.ok) throw new Error("Error al crear el pomodoro");
+
+        const pomodoroCreado = await resPomodoro.json();
 
         tareaActual = tarea;
         tiempoRestanteSegundos = tarea.duracionMinutos * 60;
+        let pomodoroIdActual = pomodoroCreado.id;
 
         marcarTareaEnProgresoVisual(tarea.id);
-
         actualizarTemporizadorUI();
-
 
         temporizadorInterval = setInterval(async () => {
             tiempoRestanteSegundos--;
@@ -337,6 +344,13 @@ async function iniciarPomodoro(tarea) {
                     if (btn) btn.disabled = true;
                 }
 
+                // Marcar Pomodoro completado en backend
+                await fetch(`${API}/pomodoros/${pomodoroIdActual}/complete`, {
+                    method: "PUT",
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                // Continuar con la siguiente tarea encadenada
                 const resSiguiente = await fetch(`${API}/tareas/${tarea.id}/finalizar-y-empezar-siguiente`, {
                     method: "PUT",
                     headers: { Authorization: `Bearer ${token}` }
@@ -354,11 +368,13 @@ async function iniciarPomodoro(tarea) {
                 }
             }
         }, 1000);
+
     } catch (error) {
         console.error(error);
         alert(error.message);
     }
 }
+
 
 function actualizarTemporizadorUI() {
     const minutos = Math.floor(tiempoRestanteSegundos / 60).toString().padStart(2, "0");
